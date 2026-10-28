@@ -29,6 +29,33 @@ const IGNORE_CONTROL_FILE_NAMES = new Set(['.gitignore', '.ignore', '.repomixign
 export const isIgnoreControlFile = (filePath: string): boolean =>
   IGNORE_CONTROL_FILE_NAMES.has(path.posix.basename(filePath.replace(/\\/g, '/')));
 
+/**
+ * Returns true when custom ignore patterns include a meaningful negation.
+ * A bare `!` is ignored because it normalizes to an empty include pattern.
+ */
+const hasNegatedCustomPatterns = (patterns: string[] = []): boolean =>
+  patterns.some((pattern) => pattern.startsWith('!') && pattern.length > 1);
+
+/**
+ * Converts custom ignore patterns into ordered globby include patterns when
+ * negations are present. Non-negated patterns become excludes (`dist/**` ->
+ * `!dist/**`), while negated patterns become includes (`!dist/keep.js` ->
+ * `dist/keep.js`) after normalization.
+ */
+const createCustomGlobPatterns = (patterns: string[] = []): string[] => {
+  if (!hasNegatedCustomPatterns(patterns)) {
+    return [];
+  }
+
+  return patterns
+    .map((pattern) => {
+      const isNegated = pattern.startsWith('!');
+      const normalizedPattern = normalizeGlobPattern(isNegated ? pattern.slice(1) : pattern);
+      return normalizedPattern ? (isNegated ? normalizedPattern : `!${normalizedPattern}`) : null;
+    })
+    .filter((pattern): pattern is string => pattern !== null);
+};
+
 // No per-directory ignore-pattern check is needed here. The `directories` array
 // comes from globby with the same `ignore` patterns (e.g. `dist/**`), which
 // excludes both the directory contents AND the directory entry itself.
@@ -242,6 +269,7 @@ export const searchFiles = async (
     if (includePatterns.length === 0) {
       includePatterns = ['**/*'];
     }
+    includePatterns = [...includePatterns, ...createCustomGlobPatterns(config.ignore.customPatterns)];
 
     logger.trace('Include patterns with explicit files:', includePatterns);
     logger.trace('Ignore patterns:', adjustedIgnorePatterns);
@@ -515,8 +543,10 @@ export const getIgnorePatterns = async (rootDir: string, config: RepomixConfigMe
   // Add custom ignore patterns
   if (config.ignore.customPatterns) {
     logger.trace('Adding custom ignore patterns:', config.ignore.customPatterns);
-    for (const pattern of config.ignore.customPatterns) {
-      ignorePatterns.add(pattern);
+    if (!hasNegatedCustomPatterns(config.ignore.customPatterns)) {
+      for (const pattern of config.ignore.customPatterns) {
+        ignorePatterns.add(pattern);
+      }
     }
   }
 
@@ -551,7 +581,7 @@ export const getIgnorePatterns = async (rootDir: string, config: RepomixConfigMe
 export const listDirectories = async (rootDir: string, config: RepomixConfigMerged): Promise<string[]> => {
   const { adjustedIgnorePatterns, ignoreFilePatterns } = await prepareIgnoreContext(rootDir, config);
 
-  const directories = await globby(['**/*'], {
+  const directories = await globby(['**/*', ...createCustomGlobPatterns(config.ignore.customPatterns)], {
     ...createBaseGlobbyOptions(rootDir, config, adjustedIgnorePatterns, ignoreFilePatterns),
     onlyDirectories: true,
   });
@@ -573,7 +603,7 @@ export const listFiles = async (rootDir: string, config: RepomixConfigMerged): P
     config,
   );
 
-  const files = await globby(['**/*'], {
+  const files = await globby(['**/*', ...createCustomGlobPatterns(config.ignore.customPatterns)], {
     ...createBaseGlobbyOptions(rootDir, config, adjustedIgnorePatterns, ignoreFilePatterns),
     onlyFiles: true,
   });
