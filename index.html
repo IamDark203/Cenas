@@ -449,9 +449,28 @@ document.getElementById('importFile').addEventListener('change', async (ev) => {
 
 render();
 
+// Atualizações: sempre que a app é aberta ou volta ao ecrã, vê se há versão nova e recarrega.
+const APP_VERSION = '6';
+let swReg = null;
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').then((r) => { swReg = r; }).catch(() => {});
 }
+async function checkForUpdate() {
+  if (location.protocol === 'file:') return;
+  try {
+    const res = await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' });
+    const { version } = await res.json();
+    if (version === APP_VERSION) return;
+    // Evita recarregar sem fim se a versão nova ainda não estiver disponível
+    const tried = sessionStorage.getItem('updateTried');
+    if (tried === version) return;
+    sessionStorage.setItem('updateTried', version);
+    if (swReg) await swReg.update().catch(() => {});
+    location.reload();
+  } catch { /* sem internet: continua com a versão guardada */ }
+}
+checkForUpdate();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
 // Dica de instalação: só no iPhone/iPad, no Safari, quando ainda não está instalada
 (() => {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

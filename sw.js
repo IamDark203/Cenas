@@ -1,6 +1,6 @@
 // Guarda a app em cache para funcionar sem internet. Muda a versão a cada alteração para forçar atualização.
-const CACHE = 'financas-casa-v5';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'financas-casa-v6';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './version.json', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -17,7 +17,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    // no-cache: confirma sempre com o servidor se há versão nova (o GitHub Pages pede 10 min de cache)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));
