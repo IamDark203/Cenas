@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finanças da Casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4f0;
+    --card: #ffffff;
+    --ink: #1f1d1a;
+    --muted: #8a857c;
+    --line: #ebe7e0;
+    --accent: #5b7f6a;
+    --accent-soft: #e6eee8;
+    --warn: #c0843d;
+    --warn-soft: #f7ecdd;
+    --neg: #b5574b;
+    --neg-soft: #f6e3e0;
+    --shadow: 0 1px 2px rgba(30, 25, 15, .04), 0 8px 24px rgba(30, 25, 15, .05);
+    --c1: #5b7f6a; --c2: #8fa98f; --c3: #c9b28a; --c4: #d39a6a; --c5: #a7687a;
+    --c6: #7d86a8; --c7: #6fa3a8; --c8: #b8a3c9; --c9: #d8c46a; --c10: #9c8f7d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161513; --card: #1f1d1b; --ink: #f0ece6; --muted: #9a948a; --line: #2d2a27;
+      --accent: #8fb79c; --accent-soft: #24302a; --warn: #e0a660; --warn-soft: #34291c;
+      --neg: #e08a7d; --neg-soft: #3a2421; --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161513; --card: #1f1d1b; --ink: #f0ece6; --muted: #9a948a; --line: #2d2a27;
+    --accent: #8fb79c; --accent-soft: #24302a; --warn: #e0a660; --warn-soft: #34291c;
+    --neg: #e08a7d; --neg-soft: #3a2421; --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 16px; }
+  .month-nav { display: flex; align-items: center; gap: 4px; background: var(--card); border-radius: 999px; padding: 4px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .month-nav button { border: 0; background: transparent; color: var(--ink); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .month-nav button:hover { background: var(--bg); }
+  .month-nav .label { min-width: 150px; text-align: center; font-weight: 500; }
+  .grid { display: grid; gap: 16px; }
+  .grid > * { min-width: 0; }
+  .stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
+  .main { grid-template-columns: 1.15fr 1fr; align-items: start; }
+  .card { background: var(--card); border-radius: 18px; padding: 22px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .stat .k { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .stat .v { font-size: 24px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .stat .s { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .stat.hero { background: var(--accent); color: #fff; border-color: transparent; }
+  .stat.hero .k, .stat.hero .s { color: rgba(255, 255, 255, .78); }
+  .stat.hero.neg { background: var(--neg); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name small { display: block; color: var(--muted); font-size: 12px; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); white-space: nowrap; }
+  .badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .money { position: relative; width: 116px; flex: none; }
+  .money input {
+    width: 100%; text-align: right; padding: 8px 26px 8px 10px; border-radius: 10px; border: 1px solid transparent;
+    background: var(--bg); color: var(--ink); font: inherit; font-variant-numeric: tabular-nums;
+  }
+  .money input:focus { outline: none; border-color: var(--accent); background: var(--card); }
+  .money input.pending { background: var(--warn-soft); }
+  .money::after { content: '€'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+  .icon-btn { border: 0; background: transparent; color: var(--muted); cursor: pointer; width: 28px; height: 28px; border-radius: 8px; font-size: 16px; flex: none; }
+  .icon-btn:hover { background: var(--bg); color: var(--neg); }
+  .total { display: flex; justify-content: space-between; padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--line); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .add { display: flex; gap: 8px; margin-top: 14px; }
+  .add input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px; border: 1px dashed var(--line); background: transparent; color: var(--ink); font: inherit; }
+  .add input.v { flex: 0 0 96px; }
+  .add input:focus { outline: none; border-color: var(--accent); border-style: solid; }
+  .btn { border: 0; background: var(--ink); color: var(--card); padding: 9px 14px; border-radius: 10px; font: inherit; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .btn.ghost:hover { color: var(--ink); }
+  .side { display: grid; gap: 16px; }
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-wrap svg { flex: none; }
+  .legend { flex: 1; min-width: 0; font-size: 13px; }
+  .legend .l { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+  .legend .l span:last-child { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 140px; padding-top: 8px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar-stack { width: 100%; max-width: 34px; display: flex; flex-direction: column-reverse; border-radius: 6px; overflow: hidden; background: var(--bg); }
+  .bar-col .m { font-size: 11px; color: var(--muted); text-transform: capitalize; }
+  .bar-col.cur .m { color: var(--ink); font-weight: 600; }
+  .tiny-legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .tiny-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+  .note { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 12px; }
+  .meter { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; margin-top: 12px; }
+  .meter div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s; }
+  footer { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 24px; }
+  .section + .section { margin-top: 26px; }
+  @media (max-width: 860px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .main { grid-template-columns: minmax(0, 1fr); }
+    .add { flex-wrap: wrap; }
+    .add input:not(.v) { flex-basis: 100%; }
+    .add input.v { flex: 1; }
+  }
+  @media (max-width: 420px) {
+    .stat .v { font-size: 20px; }
+    .money { width: 100px; }
+    .donut-wrap { flex-direction: column; align-items: stretch; }
+    .donut-wrap svg { align-self: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Finanças da Casa <span>· orçamento mensal</span></h1>
+    <div class="month-nav">
+      <button id="prev" aria-label="Mês anterior">‹</button>
+      <div class="label" id="monthLabel"></div>
+      <button id="next" aria-label="Mês seguinte">›</button>
+    </div>
+  </header>
+
+  <div class="grid stats">
+    <div class="card stat"><div class="k">Entradas em conta</div><div class="v" id="sIn"></div><div class="s" id="sInSub"></div></div>
+    <div class="card stat"><div class="k">Despesas do mês</div><div class="v" id="sOut"></div><div class="s" id="sOutSub"></div></div>
+    <div class="card stat hero" id="heroCard"><div class="k">Sobra em conta</div><div class="v" id="sBal"></div><div class="s" id="sBalSub"></div></div>
+    <div class="card stat"><div class="k">Cartão refeição</div><div class="v" id="sMeal"></div><div class="s">Para supermercado e refeições</div></div>
+  </div>
+
+  <div class="grid main">
+    <div class="card">
+      <div class="section">
+        <h2>Rendimentos</h2>
+        <div id="incomeList"></div>
+        <div class="total"><span>Total líquido</span><span id="incomeTotal"></span></div>
+        <p class="note" id="grossNote"></p>
+      </div>
+      <div class="section">
+        <h2>Despesas</h2>
+        <div id="expenseList"></div>
+        <div class="total"><span>Total despesas</span><span id="expenseTotal"></span></div>
+        <form class="add" id="addForm">
+          <input id="addName" placeholder="Nova despesa (ex.: farmácia)" required>
+          <input id="addValue" class="v" placeholder="0,00" inputmode="decimal" required>
+          <button class="btn" type="submit">Adicionar</button>
+        </form>
+        <p class="note">Valores alterados aqui aplicam-se só a este mês. Luz e Água ficam a laranja até serem carregados.</p>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>Para onde vai o dinheiro</h2>
+        <div class="donut-wrap">
+          <svg id="donut" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Distribuição das despesas"></svg>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Taxa de poupança</h2>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="stat"><span class="v" id="saveRate"></span></span>
+          <span class="note" style="margin:0" id="saveNote"></span>
+        </div>
+        <div class="meter"><div id="saveMeter"></div></div>
+      </div>
+      <div class="card">
+        <h2>Luz e Água · últimos 6 meses</h2>
+        <div class="bars" id="bars"></div>
+        <div class="tiny-legend"><span><i style="background:var(--c4)"></i>Luz</span><span><i style="background:var(--c7)"></i>Água</span><span id="avgNote"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <button class="btn ghost" id="exportBtn">Exportar dados</button>
+    <button class="btn ghost" id="importBtn">Importar dados</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+  </footer>
+</div>
+
+<script>
+const STORAGE_KEY = 'financas-casa-v1';
+const GROSS_SALARY = 1240;
+
+// Valores por defeito — usados em qualquer mês que ainda não tenha sido editado.
+const DEFAULT_INCOMES = [
+  { id: 'eu', name: 'O meu ordenado', sub: 'Líquido em conta', value: 1070 },
+  { id: 'esposa', name: 'Ordenado da esposa', sub: 'Líquido em conta', value: 889 },
+  { id: 'refeicao', name: 'Cartão refeição', sub: 'Não entra na conta', value: 220, meal: true },
+];
+const DEFAULT_EXPENSES = [
+  { id: 'casa', name: 'Casa', value: 673.70 },
+  { id: 'seguros', name: 'Seguros de casa', value: 83.50 },
+  { id: 'luz', name: 'Luz', value: null, variable: true },
+  { id: 'agua', name: 'Água', value: null, variable: true },
+  { id: 'vodafone', name: 'Vodafone', value: 49 },
+  { id: 'apple', name: 'Apple', value: 9.99 },
+  { id: 'cozinha', name: 'Cozinha', value: 152.37 },
+  { id: 'mf1', name: 'MF1', value: 94.55 },
+  { id: 'cp', name: 'CP', value: 163.54 },
+  { id: 'cp2', name: 'CP 2', value: 54 },
+];
+const COLORS = ['--c1', '--c3', '--c4', '--c7', '--c2', '--c5', '--c6', '--c8', '--c9', '--c10'];
+
+const fmt = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' });
+const fmtNum = (v) => (v == null ? '' : v.toFixed(2).replace('.', ','));
+const parseNum = (s) => {
+  const t = String(s).trim().replace(/\s|€/g, '').replace(',', '.');
+  if (t === '') return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : null;
+};
+const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+const monthName = (d, opts = { month: 'long', year: 'numeric' }) => d.toLocaleDateString('pt-PT', opts);
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { months: {} }; }
+  catch { return { months: {} }; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* armazenamento indisponível */ }
+}
+
+let state = load();
+if (!state.months) state.months = {};
+let current = new Date(); current.setDate(1);
+
+function getMonth(key) {
+  if (!state.months[key]) state.months[key] = { incomes: {}, expenses: {}, extras: [] };
+  return state.months[key];
+}
+function peekMonth(key) { return state.months[key] || { incomes: {}, expenses: {}, extras: [] }; }
+
+function resolved(key) {
+  const m = peekMonth(key);
+  const incomes = DEFAULT_INCOMES.map((i) => ({ ...i, value: i.id in m.incomes ? m.incomes[i.id] : i.value }));
+  const expenses = DEFAULT_EXPENSES.map((e) => ({ ...e, value: e.id in m.expenses ? m.expenses[e.id] : e.value }))
+    .concat((m.extras || []).map((x) => ({ ...x, extra: true })));
+  return { incomes, expenses };
+}
+
+function moneyInput(value, onChange, pending) {
+  const wrap = document.createElement('label');
+  wrap.className = 'money';
+  const input = document.createElement('input');
+  input.inputMode = 'decimal';
+  input.value = fmtNum(value);
+  input.placeholder = pending ? 'carregar' : '0,00';
+  if (pending && value == null) input.classList.add('pending');
+  input.addEventListener('change', () => { onChange(parseNum(input.value)); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function row({ color, name, sub, badge, input, onDelete }) {
+  const r = document.createElement('div');
+  r.className = 'row';
+  if (color) { const d = document.createElement('span'); d.className = 'dot'; d.style.background = `var(${color})`; r.appendChild(d); }
+  const n = document.createElement('div'); n.className = 'name'; n.textContent = name;
+  if (sub) { const s = document.createElement('small'); s.textContent = sub; n.appendChild(s); }
+  r.appendChild(n);
+  if (badge) { const b = document.createElement('span'); b.className = `badge ${badge.ok ? 'ok' : ''}`; b.textContent = badge.text; r.appendChild(b); }
+  r.appendChild(input);
+  if (onDelete) {
+    const x = document.createElement('button'); x.className = 'icon-btn'; x.textContent = '×'; x.title = 'Remover';
+    x.addEventListener('click', onDelete); r.appendChild(x);
+  }
+  return r;
+}
+
+function render() {
+  const key = monthKey(current);
+  const { incomes, expenses } = resolved(key);
+  document.getElementById('monthLabel').textContent = monthName(current).replace(/^./, (c) => c.toUpperCase());
+
+  // Rendimentos
+  const incList = document.getElementById('incomeList'); incList.innerHTML = '';
+  incomes.forEach((i) => incList.appendChild(row({
+    name: i.name, sub: i.sub,
+    input: moneyInput(i.value, (v) => { getMonth(key).incomes[i.id] = v ?? 0; save(); render(); }),
+  })));
+  const inAccount = incomes.filter((i) => !i.meal).reduce((a, i) => a + (i.value || 0), 0);
+  const meal = incomes.filter((i) => i.meal).reduce((a, i) => a + (i.value || 0), 0);
+  document.getElementById('incomeTotal').textContent = fmt.format(inAccount + meal);
+  document.getElementById('grossNote').textContent =
+    `O teu ordenado bruto é de ${fmt.format(GROSS_SALARY)}. Entre conta e cartão refeição recebes ${fmt.format((incomes[0].value || 0) + meal)} líquidos.`;
+
+  // Despesas
+  const expList = document.getElementById('expenseList'); expList.innerHTML = '';
+  expenses.forEach((e, idx) => {
+    const color = COLORS[idx % COLORS.length];
+    e.color = color;
+    const badge = e.variable ? (e.value == null ? { text: 'Por carregar' } : { text: 'Carregado', ok: true }) : null;
+    expList.appendChild(row({
+      color, name: e.name, sub: e.extra ? 'Só este mês' : (e.variable ? 'Varia todos os meses' : null), badge,
+      input: moneyInput(e.value, (v) => {
+        const m = getMonth(key);
+        if (e.extra) { const x = m.extras.find((y) => y.id === e.id); if (x) x.value = v ?? 0; }
+        else m.expenses[e.id] = e.variable ? v : (v ?? 0);
+        save(); render();
+      }, e.variable),
+      onDelete: e.extra ? () => { const m = getMonth(key); m.extras = m.extras.filter((y) => y.id !== e.id); save(); render(); } : null,
+    }));
+  });
+  const totalOut = expenses.reduce((a, e) => a + (e.value || 0), 0);
+  const pending = expenses.filter((e) => e.variable && e.value == null);
+  document.getElementById('expenseTotal').textContent = fmt.format(totalOut);
+
+  // Resumo
+  const bal = inAccount - totalOut;
+  document.getElementById('sIn').textContent = fmt.format(inAccount);
+  document.getElementById('sInSub').textContent = 'Os dois ordenados';
+  document.getElementById('sOut').textContent = fmt.format(totalOut);
+  document.getElementById('sOutSub').textContent = pending.length
+    ? `Falta carregar: ${pending.map((p) => p.name).join(' e ')}` : 'Tudo carregado';
+  document.getElementById('sBal').textContent = fmt.format(bal);
+  document.getElementById('sBalSub').textContent = pending.length ? 'Estimativa — faltam valores' : 'Depois de todas as despesas';
+  document.getElementById('heroCard').classList.toggle('neg', bal < 0);
+  document.getElementById('sMeal').textContent = fmt.format(meal);
+
+  const rate = inAccount > 0 ? Math.max(0, bal / inAccount) : 0;
+  document.getElementById('saveRate').textContent = `${Math.round(rate * 100)}%`;
+  document.getElementById('saveNote').textContent = `${fmt.format(Math.max(0, bal))} de ${fmt.format(inAccount)}`;
+  document.getElementById('saveMeter').style.width = `${Math.min(100, rate * 100)}%`;
+
+  renderDonut(expenses.filter((e) => (e.value || 0) > 0), totalOut);
+  renderBars();
+}
+
+function renderDonut(items, total) {
+  const svg = document.getElementById('donut');
+  const r = 58, c = 2 * Math.PI * r;
+  let offset = 0;
+  let html = `<circle cx="75" cy="75" r="${r}" fill="none" stroke="var(--line)" stroke-width="16"/>`;
+  items.forEach((e) => {
+    const len = total ? (e.value / total) * c : 0;
+    html += `<circle cx="75" cy="75" r="${r}" fill="none" stroke="var(${e.color})" stroke-width="16"
+      stroke-dasharray="${Math.max(0, len - 2)} ${c}" stroke-dashoffset="${-offset}" transform="rotate(-90 75 75)"><title>${e.name}: ${fmt.format(e.value)}</title></circle>`;
+    offset += len;
+  });
+  html += `<text x="75" y="72" text-anchor="middle" font-size="11" fill="var(--muted)">Total</text>
+    <text x="75" y="90" text-anchor="middle" font-size="15" font-weight="600" fill="var(--ink)">${fmt.format(total).replace(/,\d+/, '')}</text>`;
+  svg.innerHTML = html;
+
+  const legend = document.getElementById('legend'); legend.innerHTML = '';
+  [...items].sort((a, b) => b.value - a.value).forEach((e) => {
+    const l = document.createElement('div'); l.className = 'l';
+    l.innerHTML = `<span class="dot" style="background:var(${e.color})"></span><span></span><span>${Math.round((e.value / total) * 100)}%</span>`;
+    l.children[1].textContent = e.name;
+    legend.appendChild(l);
+  });
+}
+
+function renderBars() {
+  const months = [];
+  for (let k = 5; k >= 0; k--) { const d = new Date(current); d.setMonth(d.getMonth() - k); months.push(d); }
+  const data = months.map((d) => {
+    const m = peekMonth(monthKey(d));
+    return { d, luz: m.expenses.luz || 0, agua: m.expenses.agua || 0 };
+  });
+  const max = Math.max(1, ...data.map((x) => x.luz + x.agua));
+  const bars = document.getElementById('bars'); bars.innerHTML = '';
+  data.forEach((x, i) => {
+    const col = document.createElement('div'); col.className = `bar-col${i === data.length - 1 ? ' cur' : ''}`;
+    const total = x.luz + x.agua;
+    const stack = document.createElement('div'); stack.className = 'bar-stack';
+    stack.style.height = `${Math.max(4, (total / max) * 110)}px`;
+    stack.title = `Luz ${fmt.format(x.luz)} · Água ${fmt.format(x.agua)}`;
+    if (total > 0) {
+      stack.innerHTML = `<div style="height:${(x.luz / total) * 100}%;background:var(--c4)"></div><div style="height:${(x.agua / total) * 100}%;background:var(--c7)"></div>`;
+    }
+    const m = document.createElement('span'); m.className = 'm'; m.textContent = monthName(x.d, { month: 'short' }).replace('.', '');
+    col.append(stack, m); bars.appendChild(col);
+  });
+  const filled = data.filter((x) => x.luz + x.agua > 0);
+  document.getElementById('avgNote').textContent = filled.length
+    ? `Média: ${fmt.format(filled.reduce((a, x) => a + x.luz + x.agua, 0) / filled.length)}` : '';
+}
+
+document.getElementById('prev').addEventListener('click', () => { current.setMonth(current.getMonth() - 1); render(); });
+document.getElementById('next').addEventListener('click', () => { current.setMonth(current.getMonth() + 1); render(); });
+
+document.getElementById('addForm').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const name = document.getElementById('addName').value.trim();
+  const value = parseNum(document.getElementById('addValue').value);
+  if (!name || value == null) return;
+  getMonth(monthKey(current)).extras.push({ id: `x${Date.now()}`, name, value });
+  save(); ev.target.reset(); render();
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `financas-casa-${monthKey(new Date())}.json`; a.click();
+  URL.revokeObjectURL(a.href);
+});
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0]; if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data.months) throw new Error();
+    state = data; save(); render();
+  } catch { alert('Ficheiro inválido.'); }
+  ev.target.value = '';
+});
+
+render();
+</script>
+</body>
+</html>
