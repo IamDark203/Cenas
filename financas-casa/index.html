@@ -73,15 +73,12 @@
   .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
   .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .name small { display: block; color: var(--muted); font-size: 12px; }
-  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); white-space: nowrap; }
-  .badge.ok { background: var(--accent-soft); color: var(--accent); }
   .money { position: relative; width: 116px; flex: none; }
   .money input {
     width: 100%; text-align: right; padding: 8px 26px 8px 10px; border-radius: 10px; border: 1px solid transparent;
     background: var(--bg); color: var(--ink); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums;
   }
   .money input:focus { outline: none; border-color: var(--accent); background: var(--card); }
-  .money input.pending { background: var(--warn-soft); }
   .money::after { content: '€'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
   .icon-btn { border: 0; background: transparent; color: var(--muted); cursor: pointer; width: 28px; height: 28px; border-radius: 8px; font-size: 16px; flex: none; }
   .icon-btn:hover { background: var(--bg); color: var(--neg); }
@@ -127,7 +124,6 @@
     .money { width: 112px; }
     .money input { padding-left: 6px; padding-right: 22px; }
     .money::after { right: 8px; }
-    .row .badge { display: none; }
     .donut-wrap { flex-direction: column; align-items: stretch; }
     .donut-wrap svg { align-self: center; }
   }
@@ -162,7 +158,6 @@
         <h2>Rendimentos</h2>
         <div id="incomeList"></div>
         <div class="total"><span>Total líquido</span><span id="incomeTotal"></span></div>
-        <p class="note" id="grossNote"></p>
       </div>
       <div class="section">
         <h2>Despesas</h2>
@@ -173,7 +168,7 @@
           <input id="addValue" class="v" placeholder="0,00" inputmode="decimal" required>
           <button class="btn" type="submit">Adicionar</button>
         </form>
-        <p class="note">Um valor alterado vale a partir deste mês. Luz e Água são preenchidas todos os meses e ficam a laranja até serem carregadas.</p>
+        <p class="note">Um valor alterado vale a partir deste mês e passa para os meses seguintes.</p>
       </div>
     </div>
 
@@ -194,9 +189,9 @@
         <div class="meter"><div id="saveMeter"></div></div>
       </div>
       <div class="card">
-        <h2>Luz e Água · últimos 6 meses</h2>
+        <h2>Sobra · últimos 6 meses</h2>
         <div class="bars" id="bars"></div>
-        <div class="tiny-legend"><span><i style="background:var(--c4)"></i>Luz</span><span><i style="background:var(--c7)"></i>Água</span><span id="avgNote"></span></div>
+        <div class="tiny-legend"><span id="avgNote"></span></div>
       </div>
     </div>
   </div>
@@ -213,16 +208,15 @@ const STORAGE_KEY = 'financas-casa-v1';
 
 // Só os nomes das rubricas — os valores são preenchidos na app e ficam guardados apenas neste dispositivo.
 const DEFAULT_INCOMES = [
-  { id: 'bruto', name: 'O meu ordenado bruto', sub: 'Só informativo', value: null, info: true },
-  { id: 'eu', name: 'O meu ordenado', sub: 'Líquido em conta', value: null },
-  { id: 'esposa', name: 'Ordenado da esposa', sub: 'Líquido em conta', value: null },
+  { id: 'eu', name: 'O meu ordenado', sub: 'Líquido', value: null },
+  { id: 'esposa', name: 'Ordenado da esposa', sub: 'Líquido', value: null },
   { id: 'refeicao', name: 'Cartão refeição', sub: 'Não entra na conta', value: null, meal: true },
 ];
 const DEFAULT_EXPENSES = [
   { id: 'casa', name: 'Casa', value: null },
   { id: 'seguros', name: 'Seguros de casa', value: null },
-  { id: 'luz', name: 'Luz', value: null, variable: true },
-  { id: 'agua', name: 'Água', value: null, variable: true },
+  { id: 'luz', name: 'Luz', value: null },
+  { id: 'agua', name: 'Água', value: null },
   { id: 'vodafone', name: 'Vodafone', value: null },
   { id: 'apple', name: 'Apple', value: null },
   { id: 'cozinha', name: 'Cozinha', value: null },
@@ -261,7 +255,7 @@ function getMonth(key) {
 }
 function peekMonth(key) { return state.months[key] || { incomes: {}, expenses: {}, extras: [] }; }
 
-// Um valor preenchido num mês passa para os meses seguintes até ser alterado (exceto Luz e Água).
+// Um valor preenchido num mês passa para os meses seguintes até ser alterado.
 function carried(kind, id, key) {
   const m = peekMonth(key);
   if (id in m[kind]) return m[kind][id];
@@ -273,33 +267,31 @@ function carried(kind, id, key) {
 function resolved(key) {
   const m = peekMonth(key);
   const incomes = DEFAULT_INCOMES.map((i) => ({ ...i, value: carried('incomes', i.id, key) }));
-  const expenses = DEFAULT_EXPENSES.map((e) => ({ ...e, value: e.variable ? (m.expenses[e.id] ?? null) : carried('expenses', e.id, key) }))
+  const expenses = DEFAULT_EXPENSES.map((e) => ({ ...e, value: carried('expenses', e.id, key) }))
     .concat((m.extras || []).map((x) => ({ ...x, extra: true })));
   return { incomes, expenses };
 }
 
-function moneyInput(value, onChange, pending) {
+function moneyInput(value, onChange) {
   const wrap = document.createElement('label');
   wrap.className = 'money';
   const input = document.createElement('input');
   input.inputMode = 'decimal';
   input.value = fmtNum(value);
-  input.placeholder = pending ? 'carregar' : '0,00';
-  if (pending && value == null) input.classList.add('pending');
+  input.placeholder = '0,00';
   input.addEventListener('change', () => { onChange(parseNum(input.value)); });
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
   wrap.appendChild(input);
   return wrap;
 }
 
-function row({ color, name, sub, badge, input, onDelete }) {
+function row({ color, name, sub, input, onDelete }) {
   const r = document.createElement('div');
   r.className = 'row';
   if (color) { const d = document.createElement('span'); d.className = 'dot'; d.style.background = `var(${color})`; r.appendChild(d); }
   const n = document.createElement('div'); n.className = 'name'; n.textContent = name;
   if (sub) { const s = document.createElement('small'); s.textContent = sub; n.appendChild(s); }
   r.appendChild(n);
-  if (badge) { const b = document.createElement('span'); b.className = `badge ${badge.ok ? 'ok' : ''}`; b.textContent = badge.text; r.appendChild(b); }
   r.appendChild(input);
   if (onDelete) {
     const x = document.createElement('button'); x.className = 'icon-btn'; x.textContent = '×'; x.title = 'Remover';
@@ -319,34 +311,25 @@ function render() {
     name: i.name, sub: i.sub,
     input: moneyInput(i.value, (v) => { getMonth(key).incomes[i.id] = v ?? 0; save(); render(); }),
   })));
-  const inAccount = incomes.filter((i) => !i.meal && !i.info).reduce((a, i) => a + (i.value || 0), 0);
-  const meal = incomes.filter((i) => i.meal).reduce((a, i) => a + (i.value || 0), 0);
+  const { inAccount, meal, totalOut } = totals(incomes, expenses);
   document.getElementById('incomeTotal').textContent = fmt.format(inAccount + meal);
-  const gross = incomes.find((i) => i.id === 'bruto').value;
-  const mine = incomes.find((i) => i.id === 'eu').value || 0;
-  document.getElementById('grossNote').textContent = gross
-    ? `Do teu bruto de ${fmt.format(gross)} recebes ${fmt.format(mine + meal)} líquidos (conta + cartão refeição). O bruto não entra nas contas.`
-    : 'Preenche os valores uma vez: passam automaticamente para os meses seguintes. Ficam guardados só neste telemóvel.';
 
   // Despesas
   const expList = document.getElementById('expenseList'); expList.innerHTML = '';
   expenses.forEach((e, idx) => {
     const color = COLORS[idx % COLORS.length];
     e.color = color;
-    const badge = e.variable ? (e.value == null ? { text: 'Por carregar' } : { text: 'Carregado', ok: true }) : null;
     expList.appendChild(row({
-      color, name: e.name, sub: e.extra ? 'Só este mês' : (e.variable ? (e.value == null ? 'Por carregar' : 'Varia por mês') : null), badge,
+      color, name: e.name, sub: e.extra ? 'Só este mês' : null,
       input: moneyInput(e.value, (v) => {
         const m = getMonth(key);
         if (e.extra) { const x = m.extras.find((y) => y.id === e.id); if (x) x.value = v ?? 0; }
-        else m.expenses[e.id] = e.variable ? v : (v ?? 0);
+        else m.expenses[e.id] = v ?? 0;
         save(); render();
-      }, e.variable),
+      }),
       onDelete: e.extra ? () => { const m = getMonth(key); m.extras = m.extras.filter((y) => y.id !== e.id); save(); render(); } : null,
     }));
   });
-  const totalOut = expenses.reduce((a, e) => a + (e.value || 0), 0);
-  const pending = expenses.filter((e) => e.variable && e.value == null);
   document.getElementById('expenseTotal').textContent = fmt.format(totalOut);
 
   // Resumo
@@ -354,10 +337,9 @@ function render() {
   document.getElementById('sIn').textContent = fmt.format(inAccount);
   document.getElementById('sInSub').textContent = 'Os dois ordenados';
   document.getElementById('sOut').textContent = fmt.format(totalOut);
-  document.getElementById('sOutSub').textContent = pending.length
-    ? `Falta carregar: ${pending.map((p) => p.name).join(' e ')}` : 'Tudo carregado';
+  document.getElementById('sOutSub').textContent = `${expenses.filter((e) => (e.value || 0) > 0).length} despesas`;
   document.getElementById('sBal').textContent = fmt.format(bal);
-  document.getElementById('sBalSub').textContent = pending.length ? 'Estimativa — faltam valores' : 'Depois de todas as despesas';
+  document.getElementById('sBalSub').textContent = 'Depois de todas as despesas';
   document.getElementById('heroCard').classList.toggle('neg', bal < 0);
   document.getElementById('sMeal').textContent = fmt.format(meal);
 
@@ -394,30 +376,40 @@ function renderDonut(items, total) {
   });
 }
 
+function totals(incomes, expenses) {
+  const sum = (list) => list.reduce((a, x) => a + (x.value || 0), 0);
+  return {
+    inAccount: sum(incomes.filter((i) => !i.meal)),
+    meal: sum(incomes.filter((i) => i.meal)),
+    totalOut: sum(expenses),
+  };
+}
+
+// Sobra em conta nos últimos 6 meses (meses sem dados ficam vazios)
 function renderBars() {
-  const months = [];
-  for (let k = 5; k >= 0; k--) { const d = new Date(current); d.setMonth(d.getMonth() - k); months.push(d); }
-  const data = months.map((d) => {
-    const m = peekMonth(monthKey(d));
-    return { d, luz: m.expenses.luz || 0, agua: m.expenses.agua || 0 };
-  });
-  const max = Math.max(1, ...data.map((x) => x.luz + x.agua));
+  const data = [];
+  for (let k = 5; k >= 0; k--) {
+    const d = new Date(current); d.setMonth(d.getMonth() - k);
+    const key = monthKey(d);
+    const { incomes, expenses } = resolved(key);
+    const t = totals(incomes, expenses);
+    const hasData = key <= monthKey(current) && (t.inAccount > 0 || t.totalOut > 0);
+    data.push({ d, bal: hasData ? t.inAccount - t.totalOut : null });
+  }
+  const max = Math.max(1, ...data.map((x) => Math.abs(x.bal || 0)));
   const bars = document.getElementById('bars'); bars.innerHTML = '';
   data.forEach((x, i) => {
     const col = document.createElement('div'); col.className = `bar-col${i === data.length - 1 ? ' cur' : ''}`;
-    const total = x.luz + x.agua;
-    const stack = document.createElement('div'); stack.className = 'bar-stack';
-    stack.style.height = `${Math.max(4, (total / max) * 110)}px`;
-    stack.title = `Luz ${fmt.format(x.luz)} · Água ${fmt.format(x.agua)}`;
-    if (total > 0) {
-      stack.innerHTML = `<div style="height:${(x.luz / total) * 100}%;background:var(--c4)"></div><div style="height:${(x.agua / total) * 100}%;background:var(--c7)"></div>`;
-    }
+    const bar = document.createElement('div'); bar.className = 'bar-stack';
+    bar.style.height = `${x.bal ? Math.max(4, (Math.abs(x.bal) / max) * 110) : 4}px`;
+    if (x.bal) bar.style.background = x.bal < 0 ? 'var(--neg)' : 'var(--accent)';
+    bar.title = x.bal == null ? 'Sem dados' : fmt.format(x.bal);
     const m = document.createElement('span'); m.className = 'm'; m.textContent = monthName(x.d, { month: 'short' }).replace('.', '');
-    col.append(stack, m); bars.appendChild(col);
+    col.append(bar, m); bars.appendChild(col);
   });
-  const filled = data.filter((x) => x.luz + x.agua > 0);
+  const filled = data.filter((x) => x.bal != null);
   document.getElementById('avgNote').textContent = filled.length
-    ? `Média: ${fmt.format(filled.reduce((a, x) => a + x.luz + x.agua, 0) / filled.length)}` : '';
+    ? `Média: ${fmt.format(filled.reduce((a, x) => a + x.bal, 0) / filled.length)} por mês` : 'Ainda sem dados';
 }
 
 document.getElementById('prev').addEventListener('click', () => { current.setMonth(current.getMonth() - 1); render(); });

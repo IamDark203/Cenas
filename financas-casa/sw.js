@@ -1,5 +1,5 @@
 // Guarda a app em cache para funcionar sem internet. Muda a versão a cada alteração para forçar atualização.
-const CACHE = 'financas-casa-v4';
+const CACHE = 'financas-casa-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
