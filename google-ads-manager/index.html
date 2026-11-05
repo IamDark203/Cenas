@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestor Google Ads</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Gestor de Campanhas</span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="dashboard" role="tab">Painel</button>
+      <button class="tab" data-view="campaigns" role="tab">Campanhas</button>
+      <button class="tab" data-view="results" role="tab">Resultados</button>
+    </nav>
+    <div class="topbar-actions">
+      <button class="btn ghost" id="btn-theme" title="Alternar tema" aria-label="Alternar tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+      <div class="menu">
+        <button class="btn ghost" id="btn-data-menu">Dados ▾</button>
+        <div class="menu-list" id="data-menu" hidden>
+          <button data-action="export-csv">Exportar resultados (CSV)</button>
+          <button data-action="import-csv">Importar resultados (CSV)</button>
+          <hr />
+          <button data-action="export-json">Cópia de segurança (JSON)</button>
+          <button data-action="import-json">Restaurar cópia (JSON)</button>
+          <hr />
+          <button data-action="demo">Carregar dados de exemplo</button>
+          <button data-action="clear" class="danger">Apagar todos os dados</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- PAINEL -->
+    <section id="view-dashboard" class="view active">
+      <div class="filters">
+        <label class="field inline">
+          <span>Campanha</span>
+          <select id="f-campaign"></select>
+        </label>
+        <div class="segmented" id="f-range">
+          <button data-range="7">7 dias</button>
+          <button data-range="30" class="active">30 dias</button>
+          <button data-range="90">90 dias</button>
+          <button data-range="all">Tudo</button>
+          <button data-range="custom">Personalizado</button>
+        </div>
+        <div class="custom-range" id="f-custom" hidden>
+          <input type="date" id="f-from" aria-label="Data inicial" />
+          <span>até</span>
+          <input type="date" id="f-to" aria-label="Data final" />
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 id="chart-title">Evolução</h2>
+          <select id="chart-metric" aria-label="Métrica do gráfico">
+            <option value="custo">Custo</option>
+            <option value="cliques">Cliques</option>
+            <option value="impressoes">Impressões</option>
+            <option value="conversoes">Conversões</option>
+            <option value="valor">Valor de conversão</option>
+            <option value="ctr">CTR</option>
+            <option value="cpc">CPC médio</option>
+            <option value="cpa">Custo por conversão</option>
+            <option value="roas">ROAS</option>
+          </select>
+        </div>
+        <div class="chart" id="chart"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Desempenho por campanha</h2></div>
+        <div class="table-wrap" id="campaign-summary"></div>
+      </div>
+    </section>
+
+    <!-- CAMPANHAS -->
+    <section id="view-campaigns" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Campanhas</h1>
+          <p class="muted">Crie e organize as suas campanhas de Google Ads.</p>
+        </div>
+        <button class="btn primary" id="btn-new-campaign">+ Nova campanha</button>
+      </div>
+      <div class="campaign-grid" id="campaign-list"></div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section id="view-results" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Resultados</h1>
+          <p class="muted">Registe manualmente os resultados diários de cada campanha.</p>
+        </div>
+        <button class="btn primary" id="btn-new-record">+ Novo registo</button>
+      </div>
+      <div class="filters">
+        <label class="field inline">
+          <span>Campanha</span>
+          <select id="r-campaign"></select>
+        </label>
+        <label class="field inline">
+          <span>De</span>
+          <input type="date" id="r-from" />
+        </label>
+        <label class="field inline">
+          <span>Até</span>
+          <input type="date" id="r-to" />
+        </label>
+      </div>
+      <div class="card"><div class="table-wrap" id="records-table"></div></div>
+    </section>
+  </main>
+
+  <!-- Modal campanha -->
+  <dialog id="dlg-campaign" class="modal">
+    <form method="dialog" id="form-campaign">
+      <h2 id="dlg-campaign-title">Nova campanha</h2>
+      <input type="hidden" name="id" />
+      <label class="field"><span>Nome *</span><input name="nome" required maxlength="120" /></label>
+      <div class="grid-2">
+        <label class="field"><span>Tipo</span>
+          <select name="tipo">
+            <option>Pesquisa</option>
+            <option>Display</option>
+            <option>Shopping</option>
+            <option>Vídeo</option>
+            <option>Performance Max</option>
+            <option>App</option>
+            <option>Demand Gen</option>
+          </select>
+        </label>
+        <label class="field"><span>Estado</span>
+          <select name="estado">
+            <option value="ativa">Ativa</option>
+            <option value="pausada">Pausada</option>
+            <option value="terminada">Terminada</option>
+          </select>
+        </label>
+        <label class="field"><span>Orçamento diário (€)</span><input name="orcamento" type="number" min="0" step="0.01" /></label>
+        <label class="field"><span>Data de início</span><input name="inicio" type="date" /></label>
+        <label class="field"><span>Objetivo</span>
+          <select name="objetivo">
+            <option>Vendas</option>
+            <option>Leads</option>
+            <option>Tráfego do website</option>
+            <option>Notoriedade</option>
+            <option>Outro</option>
+          </select>
+        </label>
+        <label class="field"><span>CPA alvo (€)</span><input name="cpaAlvo" type="number" min="0" step="0.01" /></label>
+      </div>
+      <label class="field"><span>Notas</span><textarea name="notas" rows="2"></textarea></label>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal registo -->
+  <dialog id="dlg-record" class="modal">
+    <form method="dialog" id="form-record">
+      <h2 id="dlg-record-title">Novo registo</h2>
+      <input type="hidden" name="id" />
+      <div class="grid-2">
+        <label class="field"><span>Campanha *</span><select name="campaignId" required></select></label>
+        <label class="field"><span>Data *</span><input name="data" type="date" required /></label>
+        <label class="field"><span>Impressões</span><input name="impressoes" type="number" min="0" step="1" /></label>
+        <label class="field"><span>Cliques</span><input name="cliques" type="number" min="0" step="1" /></label>
+        <label class="field"><span>Custo (€)</span><input name="custo" type="number" min="0" step="0.01" /></label>
+        <label class="field"><span>Conversões</span><input name="conversoes" type="number" min="0" step="0.01" /></label>
+        <label class="field span-2"><span>Valor de conversão (€)</span><input name="valor" type="number" min="0" step="0.01" /></label>
+      </div>
+      <div class="preview" id="record-preview"></div>
+      <p class="form-error" id="record-error" hidden></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn primary" value="save">Guardar</button>
+        <button type="submit" class="btn" value="save-new" id="btn-save-new">Guardar e novo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="file-input" accept=".csv,.json" hidden />
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="tooltip" id="tooltip" hidden></div>
+
+  <script src="metrics.js"></script>
+  <script src="store.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
