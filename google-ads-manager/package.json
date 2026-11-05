@@ -1,0 +1,10 @@
+{
+  "name": "google-ads-manager",
+  "private": true,
+  "type": "commonjs",
+  "description": "Gestor de resultados de campanhas Google Ads (introdução manual)",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "node tests/e2e.js"
+  }
+}
