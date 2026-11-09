@@ -26,6 +26,15 @@ O **Resumo** mostra, em valores mensais ou anuais:
 
 Para experimentar, vai a **Definições → Carregar dados de exemplo**.
 
+### No iPhone (por link)
+
+A aplicação está publicada como página privada no claude.ai. Abre o link no Safari (com sessão iniciada no
+claude.ai), toca em **Partilhar → Adicionar ao ecrã principal**. Nessa versão os dados ficam guardados na tua conta,
+em privado, e sincronizam entre dispositivos.
+
+Para atualizar a página publicada depois de alterar o código: `npm run artifact` cria `dist/financas.html`, que é o
+ficheiro a publicar.
+
 ## Os teus dados
 
 Os dados ficam guardados no armazenamento local do browser (`localStorage`). Não são enviados para lado nenhum.
@@ -45,6 +54,8 @@ Em **Definições** podes:
 | `calc.js` | Cálculos (valores mensais, resumo, objetivos, validação de dados importados) |
 | `graficos.js` | Gráficos em SVG/HTML, sem bibliotecas externas |
 | `app.js` | Interface: listas, formulários de edição, categorias, importar/exportar |
+| `armazenamento.js` | Guarda os dados no browser e, no claude.ai, também na conta (sincronizado) |
+| `construir-artifact.cjs` | Junta tudo num único HTML para publicar (`npm run artifact`) |
 | `exemplo.js` | Dados de exemplo |
 | `servidor.js` | Servidor estático opcional (`npm start`) |
 
