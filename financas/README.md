@@ -28,8 +28,10 @@ Para experimentar, vai a **Definições → Carregar dados de exemplo**.
 
 ### No iPhone, como uma app
 
-1. Abre o link da aplicação no **Safari**: `https://iamdark203.github.io/Cenas/financas/`.
+1. Abre o link da aplicação no **Safari**: `https://iamdark203.github.io/Cenas/contas-da-casa/`.
 2. Toca em **Partilhar** (o quadrado com a seta) → **Adicionar ao ecrã principal** → **Adicionar**.
+
+(Publicada no branch `site-financas`, na pasta `contas-da-casa/`, que é o que o GitHub Pages serve.)
 
 Fica com ícone próprio, abre em ecrã inteiro e funciona sem internet depois da primeira visita. Qualquer pessoa pode
 usar o link, sem conta: cada pessoa vê só os seus dados, guardados no próprio telemóvel.

@@ -3,6 +3,8 @@
 // O nome começa por "minhas-financas-" para não apagar a cache das outras apps no mesmo site.
 const PREFIXO = 'minhas-financas-';
 const VERSAO = `${PREFIXO}v1`;
+// Caches da app "Contas da Casa", que esta substituiu no mesmo endereço.
+const PREFIXOS_ANTIGOS = ['contas-'];
 const FICHEIROS = [
   './',
   'index.html',
@@ -28,7 +30,9 @@ self.addEventListener('activate', (ev) => {
     caches
       .keys()
       .then((chaves) =>
-        Promise.all(chaves.filter((k) => k.startsWith(PREFIXO) && k !== VERSAO).map((k) => caches.delete(k))),
+        Promise.all(chaves.filter(
+            (k) => (k.startsWith(PREFIXO) && k !== VERSAO) || PREFIXOS_ANTIGOS.some((p) => k.startsWith(p)),
+          ).map((k) => caches.delete(k))),
       )
       .then(() => self.clients.claim()),
   );
