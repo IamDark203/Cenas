@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>As Minhas Finanças</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topo">
+      <div class="marca">
+        <span class="logo" aria-hidden="true">€</span>
+        <h1>As Minhas Finanças</h1>
+      </div>
+      <nav class="separadores" role="tablist" aria-label="Secções">
+        <button role="tab" data-sep="resumo" aria-selected="true">Resumo</button>
+        <button role="tab" data-sep="rendimentos">Rendimentos</button>
+        <button role="tab" data-sep="despesas">Despesas</button>
+        <button role="tab" data-sep="poupancas">Poupanças</button>
+        <button role="tab" data-sep="investimentos">Investimentos</button>
+        <button role="tab" data-sep="definicoes">Definições</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- RESUMO -->
+      <section id="sep-resumo" class="separador">
+        <div class="barra-titulo">
+          <h2>Resumo</h2>
+          <div class="alternar" role="group" aria-label="Período">
+            <button data-periodo="mensal" aria-pressed="true">Mensal</button>
+            <button data-periodo="anual" aria-pressed="false">Anual</button>
+          </div>
+        </div>
+        <div id="kpis" class="kpis"></div>
+        <div class="grelha-2">
+          <article class="cartao">
+            <h3>Para onde vai o meu dinheiro</h3>
+            <div id="grafico-destino" class="grafico-donut"></div>
+          </article>
+          <article class="cartao">
+            <h3>Despesas por categoria</h3>
+            <div id="grafico-categorias"></div>
+          </article>
+        </div>
+        <div class="grelha-2">
+          <article class="cartao">
+            <h3>Objetivos de poupança</h3>
+            <div id="resumo-objetivos"></div>
+          </article>
+          <article class="cartao">
+            <h3>Investimentos</h3>
+            <div id="resumo-investimentos"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- LISTAS -->
+      <section id="sep-rendimentos" class="separador" hidden>
+        <div class="barra-titulo">
+          <h2>Rendimentos</h2>
+          <button class="primario" data-adicionar="rendimentos">+ Adicionar rendimento</button>
+        </div>
+        <p class="ajuda">Ordenado, subsídios, prémios, trabalhos extra, rendas… Indica valores líquidos.</p>
+        <div id="lista-rendimentos" class="lista"></div>
+      </section>
+
+      <section id="sep-despesas" class="separador" hidden>
+        <div class="barra-titulo">
+          <h2>Despesas</h2>
+          <button class="primario" data-adicionar="despesas">+ Adicionar despesa</button>
+        </div>
+        <p class="ajuda">Para onde vai o teu dinheiro: renda, supermercado, combustível, subscrições…</p>
+        <div id="lista-despesas" class="lista"></div>
+      </section>
+
+      <section id="sep-poupancas" class="separador" hidden>
+        <div class="barra-titulo">
+          <h2>Poupanças</h2>
+          <button class="primario" data-adicionar="poupancas">+ Adicionar poupança</button>
+        </div>
+        <p class="ajuda">Contas poupança, fundo de emergência, depósitos a prazo e objetivos.</p>
+        <div id="lista-poupancas" class="lista"></div>
+      </section>
+
+      <section id="sep-investimentos" class="separador" hidden>
+        <div class="barra-titulo">
+          <h2>Investimentos</h2>
+          <button class="primario" data-adicionar="investimentos">+ Adicionar investimento</button>
+        </div>
+        <p class="ajuda">Ações, ETF, PPR, certificados, cripto… Atualiza o valor atual sempre que quiseres.</p>
+        <div id="lista-investimentos" class="lista"></div>
+      </section>
+
+      <!-- DEFINIÇÕES -->
+      <section id="sep-definicoes" class="separador" hidden>
+        <h2>Definições</h2>
+        <article class="cartao">
+          <h3>Categorias de despesa</h3>
+          <form id="form-categoria" class="linha-form">
+            <input id="nova-categoria" maxlength="60" placeholder="Nova categoria" required />
+            <button class="primario" type="submit">Adicionar</button>
+          </form>
+          <ul id="lista-categorias" class="categorias"></ul>
+        </article>
+        <article class="cartao">
+          <h3>Cópia de segurança</h3>
+          <p class="ajuda">
+            Os dados ficam guardados apenas neste browser. Exporta uma cópia para não os perderes ou para os
+            passares para outro dispositivo.
+          </p>
+          <div class="acoes">
+            <button id="exportar">Exportar (JSON)</button>
+            <label class="botao">
+              Importar
+              <input id="importar" type="file" accept="application/json,.json" hidden />
+            </label>
+            <button id="exemplo">Carregar dados de exemplo</button>
+            <button id="apagar-tudo" class="perigo">Apagar tudo</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <dialog id="dialogo">
+      <form id="form-item" method="dialog">
+        <h2 id="dialogo-titulo"></h2>
+        <div id="dialogo-campos" class="campos"></div>
+        <p id="dialogo-erro" class="erro" role="alert"></p>
+        <div class="acoes fim">
+          <button type="button" id="cancelar">Cancelar</button>
+          <button type="submit" class="primario">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+    <script src="calc.js"></script>
+    <script src="graficos.js"></script>
+    <script src="exemplo.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
