@@ -4,7 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>As Minhas Finanças</title>
-    <meta name="claude:viewport-fit-sides" content="cover" />
+    <meta name="description" content="Gere o teu ordenado, despesas, poupanças e investimentos." />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1f29" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Finanças" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icones/icone.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icones/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -12,7 +21,6 @@
       <div class="marca">
         <span class="logo" aria-hidden="true">€</span>
         <h1>As Minhas Finanças</h1>
-        <span id="sinc" class="sinc" data-estado="local">Neste dispositivo</span>
       </div>
       <nav class="separadores" role="tablist" aria-label="Secções">
         <button role="tab" data-sep="resumo" aria-selected="true">Resumo</button>
@@ -165,5 +173,11 @@
     <script src="exemplo.js"></script>
     <script src="armazenamento.js"></script>
     <script src="app.js"></script>
+    <script>
+      // Permite abrir a aplicação sem internet depois da primeira visita.
+      if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    </script>
   </body>
 </html>

@@ -5,7 +5,15 @@ const path = require('node:path');
 
 const PORTA = Number(process.env.PORT) || 8080;
 const RAIZ = __dirname;
-const TIPOS = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json' };
+const TIPOS = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'text/javascript',
+  '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+};
 
 http
   .createServer((req, res) => {
@@ -17,7 +25,8 @@ http
     }
     fs.readFile(ficheiro, (erro, dados) => {
       if (erro) return res.writeHead(404).end('Não encontrado');
-      res.writeHead(200, { 'Content-Type': `${TIPOS[path.extname(ficheiro)]}; charset=utf-8` }).end(dados);
+      const tipo = TIPOS[path.extname(ficheiro)];
+      res.writeHead(200, { 'Content-Type': tipo.startsWith('image/png') ? tipo : `${tipo}; charset=utf-8` }).end(dados);
     });
   })
   .listen(PORTA, '127.0.0.1', () => console.log(`As Minhas Finanças: http://localhost:${PORTA}`));

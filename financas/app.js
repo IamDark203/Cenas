@@ -13,7 +13,6 @@
 
   let estado = carregar();
   let periodo = 'mensal';
-  let gravarNaConta = null;
 
   // ---------- Armazenamento ----------
   function carregar() {
@@ -27,44 +26,9 @@
   }
 
   function guardar() {
-    const local = A.gravarLocal(estado);
-    if (gravarNaConta) gravarNaConta(estado);
-    else if (!local) avisar('Atenção: não foi possível guardar neste browser. Exporta uma cópia.');
+    if (!A.gravarLocal(estado)) avisar('Atenção: não foi possível guardar neste dispositivo. Exporta uma cópia.');
     desenhar();
   }
-
-  const TEXTOS_SINC = {
-    local: 'Neste dispositivo',
-    lento: 'A ligar…',
-    conta: 'Sincronizado',
-    erro: 'Sem ligação',
-  };
-
-  function mostrarSinc(e) {
-    const s = document.getElementById('sinc');
-    s.dataset.estado = e;
-    s.textContent = TEXTOS_SINC[e] || TEXTOS_SINC.local;
-    s.title =
-      e === 'conta'
-        ? 'Os dados estão guardados na tua conta e sincronizam entre dispositivos.'
-        : 'Os dados estão guardados só neste browser. Exporta cópias em Definições.';
-  }
-
-  A.ligarConta({
-    obterEstado: () => estado,
-    aoReceber: (remoto) => {
-      try {
-        estado = C.normalizarEstado(remoto);
-        A.gravarLocal(estado);
-        desenhar();
-      } catch (e) {
-        console.warn('Dados da conta inválidos:', e);
-      }
-    },
-    aoMudarEstado: mostrarSinc,
-  }).then((gravar) => {
-    gravarNaConta = gravar;
-  });
 
   // ---------- Janela de confirmação (substitui confirm/prompt) ----------
   const dlgConf = document.getElementById('confirmacao');
@@ -449,15 +413,16 @@
   document.getElementById('exportar').addEventListener('click', async () => {
     const json = JSON.stringify(estado, null, 2);
     const nome = `financas-${new Date().toISOString().slice(0, 10)}.json`;
-    const downloads = await A.usarCapacidade('downloads');
-    if (downloads) {
+    // No iPhone abre a folha de partilha (Guardar em Ficheiros, AirDrop, Mail...).
+    const ficheiro = typeof File === 'function' ? new File([json], nome, { type: 'application/json' }) : null;
+    if (ficheiro && navigator.canShare && navigator.canShare({ files: [ficheiro] })) {
       try {
-        await downloads.save({ filename: nome, data: json });
+        await navigator.share({ files: [ficheiro], title: 'Cópia das minhas finanças' });
         avisar('Cópia exportada.');
+        return;
       } catch (e) {
-        if (!e || e.code !== 'declined') avisar('Não foi possível exportar neste dispositivo.');
+        if (e && e.name === 'AbortError') return;
       }
-      return;
     }
     const blob = new Blob([json], { type: 'application/json' });
     const a = el('a', { href: URL.createObjectURL(blob), download: nome });

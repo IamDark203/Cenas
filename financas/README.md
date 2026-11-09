@@ -26,20 +26,20 @@ O **Resumo** mostra, em valores mensais ou anuais:
 
 Para experimentar, vai a **Definições → Carregar dados de exemplo**.
 
-### No iPhone (por link)
+### No iPhone, como uma app
 
-A aplicação está publicada como página privada no claude.ai. Abre o link no Safari (com sessão iniciada no
-claude.ai), toca em **Partilhar → Adicionar ao ecrã principal**. Nessa versão os dados ficam guardados na tua conta,
-em privado, e sincronizam entre dispositivos.
+1. Abre o link da aplicação no **Safari**: `https://iamdark203.github.io/Cenas/financas/`.
+2. Toca em **Partilhar** (o quadrado com a seta) → **Adicionar ao ecrã principal** → **Adicionar**.
 
-Para atualizar a página publicada depois de alterar o código: `npm run artifact` cria `dist/financas.html`, que é o
-ficheiro a publicar.
+Fica com ícone próprio, abre em ecrã inteiro e funciona sem internet depois da primeira visita. Qualquer pessoa pode
+usar o link, sem conta: cada pessoa vê só os seus dados, guardados no próprio telemóvel.
 
 ## Os teus dados
 
-Os dados ficam guardados no armazenamento local do browser (`localStorage`). Não são enviados para lado nenhum.
+Os dados ficam guardados no armazenamento local do browser (`localStorage`) do teu dispositivo. Não são enviados para
+lado nenhum, nem para quem publicou a aplicação.
 Em **Definições** podes:
-- **Exportar** uma cópia de segurança em JSON (recomendado de vez em quando);
+- **Exportar** uma cópia de segurança em JSON (recomendado de vez em quando; no iPhone, escolhe "Guardar em Ficheiros");
 - **Importar** essa cópia noutro browser ou computador;
 - **Apagar tudo**.
 
@@ -54,8 +54,9 @@ Em **Definições** podes:
 | `calc.js` | Cálculos (valores mensais, resumo, objetivos, validação de dados importados) |
 | `graficos.js` | Gráficos em SVG/HTML, sem bibliotecas externas |
 | `app.js` | Interface: listas, formulários de edição, categorias, importar/exportar |
-| `armazenamento.js` | Guarda os dados no browser e, no claude.ai, também na conta (sincronizado) |
-| `construir-artifact.cjs` | Junta tudo num único HTML para publicar (`npm run artifact`) |
+| `armazenamento.js` | Guarda os dados no dispositivo |
+| `manifest.webmanifest`, `icones/` | Nome, ícone e ecrã inteiro quando adicionada ao ecrã principal |
+| `sw.js` | Funcionamento sem internet (ao alterar a aplicação, muda `VERSAO` neste ficheiro) |
 | `exemplo.js` | Dados de exemplo |
 | `servidor.js` | Servidor estático opcional (`npm start`) |
 
