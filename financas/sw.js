@@ -1,6 +1,8 @@
 // Service worker: guarda os ficheiros da aplicação para funcionar sem internet.
 // Ao alterar a aplicação, muda a VERSAO para os telemóveis receberem a versão nova.
-const VERSAO = 'financas-v1';
+// O nome começa por "minhas-financas-" para não apagar a cache das outras apps no mesmo site.
+const PREFIXO = 'minhas-financas-';
+const VERSAO = `${PREFIXO}v1`;
 const FICHEIROS = [
   './',
   'index.html',
@@ -25,7 +27,9 @@ self.addEventListener('activate', (ev) => {
   ev.waitUntil(
     caches
       .keys()
-      .then((chaves) => Promise.all(chaves.filter((k) => k !== VERSAO).map((k) => caches.delete(k))))
+      .then((chaves) =>
+        Promise.all(chaves.filter((k) => k.startsWith(PREFIXO) && k !== VERSAO).map((k) => caches.delete(k))),
+      )
       .then(() => self.clients.claim()),
   );
 });
