@@ -2,8 +2,9 @@
 <html lang="pt-PT">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>As Minhas Finanças</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -11,6 +12,7 @@
       <div class="marca">
         <span class="logo" aria-hidden="true">€</span>
         <h1>As Minhas Finanças</h1>
+        <span id="sinc" class="sinc" data-estado="local">Neste dispositivo</span>
       </div>
       <nav class="separadores" role="tablist" aria-label="Secções">
         <button role="tab" data-sep="resumo" aria-selected="true">Resumo</button>
@@ -32,6 +34,17 @@
             <button data-periodo="anual" aria-pressed="false">Anual</button>
           </div>
         </div>
+        <article id="boas-vindas" class="cartao boas-vindas" hidden>
+          <h3>Bem-vindo(a)!</h3>
+          <p>
+            Começa por registar o teu ordenado e as tuas despesas principais. Também podes ver primeiro como fica com
+            dados de exemplo e apagá-los depois em Definições.
+          </p>
+          <div class="acoes">
+            <button class="primario" data-adicionar="rendimentos">+ Adicionar ordenado</button>
+            <button id="exemplo-inicio">Ver com dados de exemplo</button>
+          </div>
+        </article>
         <div id="kpis" class="kpis"></div>
         <div class="grelha-2">
           <article class="cartao">
@@ -134,11 +147,23 @@
       </form>
     </dialog>
 
+    <dialog id="confirmacao">
+      <form id="form-confirmacao" method="dialog">
+        <p id="confirmacao-texto"></p>
+        <input id="confirmacao-input" maxlength="60" hidden />
+        <div class="acoes fim">
+          <button type="button" id="confirmacao-nao">Cancelar</button>
+          <button type="submit" id="confirmacao-sim" class="primario">Confirmar</button>
+        </div>
+      </form>
+    </dialog>
+
     <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
 
     <script src="calc.js"></script>
     <script src="graficos.js"></script>
     <script src="exemplo.js"></script>
+    <script src="armazenamento.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

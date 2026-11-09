@@ -4,8 +4,8 @@
 
   const C = window.FinCalc;
   const G = window.FinGraficos;
+  const A = window.FinArmazenamento;
   const el = G.el;
-  const CHAVE = 'financas.v1';
 
   const euro = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' });
   const pct = new Intl.NumberFormat('pt-PT', { style: 'percent', maximumFractionDigits: 1 });
@@ -13,12 +13,13 @@
 
   let estado = carregar();
   let periodo = 'mensal';
+  let gravarNaConta = null;
 
   // ---------- Armazenamento ----------
   function carregar() {
     try {
-      const bruto = localStorage.getItem(CHAVE);
-      if (bruto) return C.normalizarEstado(JSON.parse(bruto));
+      const local = A.lerLocal();
+      if (local) return C.normalizarEstado(local);
     } catch (e) {
       console.warn('Não foi possível ler os dados guardados:', e);
     }
@@ -26,12 +27,84 @@
   }
 
   function guardar() {
-    try {
-      localStorage.setItem(CHAVE, JSON.stringify(estado));
-    } catch (e) {
-      avisar('Atenção: não foi possível guardar neste browser. Exporta uma cópia.');
-    }
+    const local = A.gravarLocal(estado);
+    if (gravarNaConta) gravarNaConta(estado);
+    else if (!local) avisar('Atenção: não foi possível guardar neste browser. Exporta uma cópia.');
     desenhar();
+  }
+
+  const TEXTOS_SINC = {
+    local: 'Neste dispositivo',
+    lento: 'A ligar…',
+    conta: 'Sincronizado',
+    erro: 'Sem ligação',
+  };
+
+  function mostrarSinc(e) {
+    const s = document.getElementById('sinc');
+    s.dataset.estado = e;
+    s.textContent = TEXTOS_SINC[e] || TEXTOS_SINC.local;
+    s.title =
+      e === 'conta'
+        ? 'Os dados estão guardados na tua conta e sincronizam entre dispositivos.'
+        : 'Os dados estão guardados só neste browser. Exporta cópias em Definições.';
+  }
+
+  A.ligarConta({
+    obterEstado: () => estado,
+    aoReceber: (remoto) => {
+      try {
+        estado = C.normalizarEstado(remoto);
+        A.gravarLocal(estado);
+        desenhar();
+      } catch (e) {
+        console.warn('Dados da conta inválidos:', e);
+      }
+    },
+    aoMudarEstado: mostrarSinc,
+  }).then((gravar) => {
+    gravarNaConta = gravar;
+  });
+
+  // ---------- Janela de confirmação (substitui confirm/prompt) ----------
+  const dlgConf = document.getElementById('confirmacao');
+  const formConf = document.getElementById('form-confirmacao');
+  const inputConf = document.getElementById('confirmacao-input');
+
+  /** Pergunta ao utilizador. Sem `valor` resolve true/false; com `valor` resolve o texto escrito ou null. */
+  function perguntar(texto, opcoes) {
+    const o = opcoes || {};
+    const comTexto = o.valor != null;
+    return new Promise((resolve) => {
+      document.getElementById('confirmacao-texto').textContent = texto;
+      inputConf.hidden = !comTexto;
+      inputConf.required = comTexto;
+      inputConf.value = comTexto ? o.valor : '';
+      const sim = document.getElementById('confirmacao-sim');
+      sim.textContent = o.botao || 'Confirmar';
+      sim.className = o.perigo ? 'primario perigo' : 'primario';
+      let terminado = false;
+      const fechar = (r) => {
+        if (terminado) return;
+        terminado = true;
+        formConf.onsubmit = null;
+        dlgConf.oncancel = null;
+        document.getElementById('confirmacao-nao').onclick = null;
+        if (dlgConf.open) dlgConf.close();
+        resolve(r);
+      };
+      formConf.onsubmit = (ev) => {
+        ev.preventDefault();
+        fechar(comTexto ? inputConf.value.trim() : true);
+      };
+      document.getElementById('confirmacao-nao').onclick = () => fechar(comTexto ? null : false);
+      dlgConf.oncancel = (ev) => {
+        ev.preventDefault();
+        fechar(comTexto ? null : false);
+      };
+      dlgConf.showModal();
+      (comTexto ? inputConf : sim).focus();
+    });
   }
 
   // ---------- Definição das secções ----------
@@ -68,6 +141,7 @@
     },
     despesas: {
       singular: 'despesa',
+      feminino: true,
       vazio: 'Ainda não tens despesas registadas.',
       novo: () => ({ categoria: estado.categorias[0], frequencia: 'mensal' }),
       campos: () => [
@@ -86,6 +160,7 @@
     },
     poupancas: {
       singular: 'poupança',
+      feminino: true,
       vazio: 'Ainda não tens poupanças registadas.',
       novo: () => ({}),
       campos: () => [
@@ -154,11 +229,11 @@
       const editar = el('button', { type: 'button', 'aria-label': `Editar ${item.nome}` }, 'Editar');
       editar.addEventListener('click', () => abrirFormulario(nome, item));
       const apagar = el('button', { type: 'button', class: 'perigo', 'aria-label': `Apagar ${item.nome}` }, 'Apagar');
-      apagar.addEventListener('click', () => {
-        if (!confirm(`Apagar "${item.nome}"?`)) return;
+      apagar.addEventListener('click', async () => {
+        if (!(await perguntar(`Apagar "${item.nome}"?`, { botao: 'Apagar', perigo: true }))) return;
         estado[nome] = estado[nome].filter((x) => x.id !== item.id);
         guardar();
-        avisar(`${capitalizar(sec.singular)} apagado(a).`);
+        avisar(`${capitalizar(sec.singular)} ${sec.feminino ? 'apagada' : 'apagado'}.`);
       });
       botoes.append(editar, apagar);
       linha.append(info, montante, botoes);
@@ -178,7 +253,7 @@
     const sec = SECCOES[nome];
     const dados = item || sec.novo();
     edicao = { nome, id: item ? item.id : null };
-    document.getElementById('dialogo-titulo').textContent = `${item ? 'Editar' : 'Novo(a)'} ${sec.singular}`;
+    document.getElementById('dialogo-titulo').textContent = `${item ? 'Editar' : sec.feminino ? 'Nova' : 'Novo'} ${sec.singular}`;
     document.getElementById('dialogo-erro').textContent = '';
     const campos = document.getElementById('dialogo-campos');
     campos.replaceChildren();
@@ -234,7 +309,7 @@
     else lista.push(limpo);
     dialogo.close();
     guardar();
-    avisar(idx >= 0 ? 'Alterações guardadas.' : `${capitalizar(sec.singular)} adicionado(a).`);
+    avisar(idx >= 0 ? 'Alterações guardadas.' : `${capitalizar(sec.singular)} ${sec.feminino ? 'adicionada' : 'adicionado'}.`);
   });
 
   document.getElementById('cancelar').addEventListener('click', () => dialogo.close());
@@ -242,6 +317,9 @@
   // ---------- Resumo ----------
   function desenharResumo() {
     const r = C.resumo(estado);
+    document.getElementById('boas-vindas').hidden = ['rendimentos', 'despesas', 'poupancas', 'investimentos'].some(
+      (k) => estado[k].length,
+    );
     const m = periodo === 'anual' ? 12 : 1;
     const sufixo = periodo === 'anual' ? '/ano' : '/mês';
     const kpis = document.getElementById('kpis');
@@ -326,8 +404,9 @@
       li.append(el('span', {}, usadas ? `${cat} (${usadas})` : cat));
       const botoes = el('span', { class: 'botoes' });
       const renomear = el('button', { type: 'button' }, 'Mudar nome');
-      renomear.addEventListener('click', () => {
-        const novo = (prompt('Novo nome da categoria:', cat) || '').trim().slice(0, 60);
+      renomear.addEventListener('click', async () => {
+        const resposta = await perguntar('Novo nome da categoria:', { valor: cat, botao: 'Guardar' });
+        const novo = (resposta || '').trim().slice(0, 60);
         if (!novo || novo === cat) return;
         if (estado.categorias.includes(novo)) return avisar('Já existe uma categoria com esse nome.');
         estado.categorias = estado.categorias.map((c) => (c === cat ? novo : c));
@@ -342,14 +421,14 @@
     }
   }
 
-  function apagarCategoria(cat, usadas) {
+  async function apagarCategoria(cat, usadas) {
     if (estado.categorias.length <= 1) return avisar('Tens de manter pelo menos uma categoria.');
     const restantes = estado.categorias.filter((c) => c !== cat);
     const destino = restantes.includes('Outros') ? 'Outros' : restantes[0];
     const msg = usadas
       ? `Apagar "${cat}"? As ${usadas} despesa(s) desta categoria passam para "${destino}".`
       : `Apagar "${cat}"?`;
-    if (!confirm(msg)) return;
+    if (!(await perguntar(msg, { botao: 'Apagar', perigo: true }))) return;
     estado.categorias = restantes;
     for (const d of estado.despesas) if (d.categoria === cat) d.categoria = destino;
     guardar();
@@ -367,9 +446,21 @@
   });
 
   // ---------- Cópia de segurança ----------
-  document.getElementById('exportar').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
-    const a = el('a', { href: URL.createObjectURL(blob), download: `financas-${new Date().toISOString().slice(0, 10)}.json` });
+  document.getElementById('exportar').addEventListener('click', async () => {
+    const json = JSON.stringify(estado, null, 2);
+    const nome = `financas-${new Date().toISOString().slice(0, 10)}.json`;
+    const downloads = await A.usarCapacidade('downloads');
+    if (downloads) {
+      try {
+        await downloads.save({ filename: nome, data: json });
+        avisar('Cópia exportada.');
+      } catch (e) {
+        if (!e || e.code !== 'declined') avisar('Não foi possível exportar neste dispositivo.');
+      }
+      return;
+    }
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: nome });
     document.body.append(a);
     a.click();
     a.remove();
@@ -382,7 +473,7 @@
     if (!ficheiro) return;
     try {
       const novo = C.normalizarEstado(JSON.parse(await ficheiro.text()));
-      if (!confirm('Substituir os dados atuais pelos do ficheiro?')) return;
+      if (!(await perguntar('Substituir os dados atuais pelos do ficheiro?', { botao: 'Substituir' }))) return;
       estado = novo;
       guardar();
       avisar('Dados importados.');
@@ -391,15 +482,24 @@
     }
   });
 
-  document.getElementById('exemplo').addEventListener('click', () => {
-    if (!confirm('Substituir os dados atuais por dados de exemplo?')) return;
+  async function carregarExemplo() {
+    const vazio = !['rendimentos', 'despesas', 'poupancas', 'investimentos'].some((k) => estado[k].length);
+    if (!vazio && !(await perguntar('Substituir os dados atuais por dados de exemplo?', { botao: 'Substituir' }))) return;
     estado = C.normalizarEstado(window.FinExemplo());
     guardar();
     mostrarSeparador('resumo');
-  });
+    avisar('Dados de exemplo carregados. Podes apagá-los em Definições.');
+  }
 
-  document.getElementById('apagar-tudo').addEventListener('click', () => {
-    if (!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  document.getElementById('exemplo').addEventListener('click', carregarExemplo);
+  document.getElementById('exemplo-inicio').addEventListener('click', carregarExemplo);
+
+  document.getElementById('apagar-tudo').addEventListener('click', async () => {
+    const ok = await perguntar('Apagar TODOS os dados? Esta ação não pode ser desfeita.', {
+      botao: 'Apagar tudo',
+      perigo: true,
+    });
+    if (!ok) return;
     estado = C.estadoInicial();
     guardar();
   });
@@ -417,7 +517,10 @@
 
   for (const b of document.querySelectorAll('[data-sep]')) b.addEventListener('click', () => mostrarSeparador(b.dataset.sep));
   for (const b of document.querySelectorAll('[data-adicionar]')) {
-    b.addEventListener('click', () => abrirFormulario(b.dataset.adicionar, null));
+    b.addEventListener('click', () => {
+      if (b.closest('#boas-vindas')) mostrarSeparador('rendimentos');
+      abrirFormulario(b.dataset.adicionar, null);
+    });
   }
   for (const b of document.querySelectorAll('[data-periodo]')) {
     b.addEventListener('click', () => {
