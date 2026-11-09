@@ -1,26 +1,55 @@
-// Offline support (scoped to this folder; the Finanças da Casa app at the site root keeps its own cache): the app shell is cached on install; fonts are cached the first time they load.
-const CACHE = 'contas-v1';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+// Service worker: guarda os ficheiros da aplicação para funcionar sem internet.
+// Ao alterar a aplicação, muda a VERSAO para os telemóveis receberem a versão nova.
+// O nome começa por "minhas-financas-" para não apagar a cache das outras apps no mesmo site.
+const PREFIXO = 'minhas-financas-';
+const VERSAO = `${PREFIXO}v1`;
+// Caches da app "Contas da Casa", que esta substituiu no mesmo endereço.
+const PREFIXOS_ANTIGOS = ['contas-'];
+const FICHEIROS = [
+  './',
+  'index.html',
+  'styles.css',
+  'calc.js',
+  'graficos.js',
+  'exemplo.js',
+  'armazenamento.js',
+  'app.js',
+  'manifest.webmanifest',
+  'icones/icone.svg',
+  'icones/apple-touch-icon.png',
+  'icones/icone-192.png',
+  'icones/icone-512.png',
+];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+self.addEventListener('install', (ev) => {
+  ev.waitUntil(caches.open(VERSAO).then((c) => c.addAll(FICHEIROS)).then(() => self.skipWaiting()));
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith('contas-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+self.addEventListener('activate', (ev) => {
+  ev.waitUntil(
+    caches
+      .keys()
+      .then((chaves) =>
+        Promise.all(chaves.filter(
+            (k) => (k.startsWith(PREFIXO) && k !== VERSAO) || PREFIXOS_ANTIGOS.some((p) => k.startsWith(p)),
+          ).map((k) => caches.delete(k))),
+      )
+      .then(() => self.clients.claim()),
+  );
 });
 
-self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  // App page: network first so updates arrive, cache when offline.
-  if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('index.html', copy)); return res; }).catch(() => caches.match('index.html')));
-    return;
-  }
-  // Everything else (icons, fonts): cache first.
-  if (url.origin === location.origin || url.hostname.endsWith('fonts.googleapis.com') || url.hostname.endsWith('fonts.gstatic.com')) {
-    e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); return res; })));
-  }
+// Rede primeiro (para receber atualizações); se não houver internet, usa a cópia guardada.
+self.addEventListener('fetch', (ev) => {
+  if (ev.request.method !== 'GET' || new URL(ev.request.url).origin !== location.origin) return;
+  ev.respondWith(
+    fetch(ev.request)
+      .then((resp) => {
+        if (resp.ok) {
+          const copia = resp.clone();
+          caches.open(VERSAO).then((c) => c.put(ev.request, copia));
+        }
+        return resp;
+      })
+      .catch(() => caches.match(ev.request, { ignoreSearch: true }).then((r) => r || caches.match('index.html'))),
+  );
 });
