@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CampoEscolha } from '../componentes/campos';
 import { FormMovimento } from '../componentes/FormMovimento';
+import { DistribuirReforco } from '../componentes/DistribuirReforco';
 import { FormRecorrente } from '../componentes/FormRecorrente';
 import { Icone } from '../componentes/icones';
 import { ListaMovimentos } from '../componentes/ListaMovimentos';
@@ -19,6 +20,7 @@ export default function Receitas() {
   const [editarRec, setEditarRec] = useState<Recorrente | null>(null);
   const [novaFonte, setNovaFonte] = useState(false);
   const [novoRegisto, setNovoRegisto] = useState(false);
+  const [distribuir, setDistribuir] = useState(false);
   const [mes, setMes] = useState(mesRef);
   const refeicao = new Set(estado.contas.filter((c) => c.tipo === 'refeicao').map((c) => c.id));
   const fontes = estado.recorrentes.filter((r) => r.tipo === 'receita');
@@ -97,6 +99,9 @@ export default function Receitas() {
             <button type="button" onClick={() => setNovoRegisto(true)} style={{ alignSelf: 'end' }}>
               <Icone nome="adicionar" /> Registo pontual
             </button>
+            <button type="button" className="primario" onClick={() => setDistribuir(true)} style={{ alignSelf: 'end' }}>
+              Distribuir um reforço
+            </button>
           </>
         }
       >
@@ -105,6 +110,7 @@ export default function Receitas() {
 
       {(novaFonte || editarRec) && <FormRecorrente inicial={editarRec ?? undefined} tipoInicial="receita" aoFechar={() => (setNovaFonte(false), setEditarRec(null))} />}
       {novoRegisto && <FormMovimento tipoInicial="receita" aoFechar={() => setNovoRegisto(false)} />}
+      {distribuir && <DistribuirReforco aoFechar={() => setDistribuir(false)} />}
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CampoArea, CampoCaixa, CampoData, CampoEscolha, CampoNumero, CampoTexto } from '../componentes/campos';
+import { GerirAlocacoes, NOMES_POLITICA, RegistarJuros, ResumoAlocacoes } from '../componentes/Alocacoes';
 import { FormMovimento } from '../componentes/FormMovimento';
 import { Icone } from '../componentes/icones';
 import { Modal, useInteracoes } from '../componentes/janelas';
@@ -8,9 +9,10 @@ import { Aviso, Cartao, Etiqueta, Kpi, LinhasResumo, Vazio } from '../componente
 import { data as fmtData, euro, numero } from '../dominio/formato';
 import { novoId } from '../dominio/ids';
 import { NOMES_TIPO_CONTA, jurosEstimados, saldoConta } from '../dominio/saldos';
-import type { Conta, PeriodicidadeJuros, TipoConta } from '../dominio/tipos';
+import type { Conta, PeriodicidadeJuros, PoliticaJuros, TipoConta } from '../dominio/tipos';
 import { useResumo } from '../estado/derivados';
 import { useLoja } from '../estado/loja';
+import { useProdutos } from '../estado/produtos';
 
 const NOMES_JUROS: Record<PeriodicidadeJuros, string> = {
   mensal: 'Mensal',
@@ -28,6 +30,8 @@ export default function Contas() {
   const [historico, setHistorico] = useState<Conta | null>(null);
   const [corrigir, setCorrigir] = useState<Conta | null>(null);
   const [transferir, setTransferir] = useState(false);
+  const [alocacoes, setAlocacoes] = useState<Conta | null>(null);
+  const [contaJuros, setContaJuros] = useState<Conta | null>(null);
   const [verArquivadas, setVerArquivadas] = useState(false);
   const ret = estado.pressupostos.retencaoJuros;
   const juros = atual.porConta.reduce((s, p) => s + (jurosEstimados(p.conta, p.saldo, ret)?.liquido ?? 0), 0);
@@ -71,7 +75,7 @@ export default function Contas() {
             >
               <div className="acoes">
                 <Etiqueta tom="acento">{NOMES_TIPO_CONTA[conta.tipo]}</Etiqueta>
-                {conta.fundoEmergencia && <Etiqueta tom="positivo">Fundo de emergência</Etiqueta>}
+                {(conta.paraGastos ?? conta.tipo === 'ordem') && conta.tipo !== 'refeicao' && <Etiqueta>Para gastos</Etiqueta>}
                 {conta.tipo === 'refeicao' && <Etiqueta tom="aviso">Benefício não convertível</Etiqueta>}
                 {conta.arquivada && <Etiqueta>Arquivada</Etiqueta>}
               </div>
@@ -92,6 +96,7 @@ export default function Contas() {
                   ]}
                 />
               )}
+              {conta.tipo !== 'refeicao' && <ResumoAlocacoes conta={conta} saldo={saldo} />}
               {conta.condicoes && <p className="pequeno suave">Condições: {conta.condicoes}</p>}
               {conta.notas && <p className="pequeno mais-suave">{conta.notas}</p>}
               <div className="acoes">
@@ -101,6 +106,16 @@ export default function Contas() {
                 <button type="button" className="pequeno" onClick={() => setCorrigir(conta)}>
                   Atualizar saldo
                 </button>
+                {conta.tipo !== 'refeicao' && (
+                  <button type="button" className="pequeno" onClick={() => setAlocacoes(conta)}>
+                    Alocações
+                  </button>
+                )}
+                {['poupanca', 'prazo', 'ordem', 'outra'].includes(conta.tipo) && (
+                  <button type="button" className="pequeno" onClick={() => setContaJuros(conta)}>
+                    Registar juros
+                  </button>
+                )}
               </div>
             </Cartao>
           );
@@ -126,6 +141,8 @@ export default function Contas() {
         </Modal>
       )}
       {corrigir && <CorrigirSaldo conta={corrigir} aoFechar={() => setCorrigir(null)} />}
+      {alocacoes && <GerirAlocacoes conta={estado.contas.find((x) => x.id === alocacoes.id) ?? alocacoes} aoFechar={() => setAlocacoes(null)} />}
+      {contaJuros && <RegistarJuros conta={contaJuros} aoFechar={() => setContaJuros(null)} />}
       {transferir && <FormMovimento tipoInicial="transferencia" aoFechar={() => setTransferir(false)} />}
     </>
   );
@@ -184,6 +201,7 @@ function CorrigirSaldo({ conta, aoFechar }: { conta: Conta; aoFechar: () => void
 
 function FormConta({ inicial, aoFechar }: { inicial?: Conta; aoFechar: () => void }) {
   const { estado, atualizar, hoje } = useLoja();
+  const { base } = useProdutos();
   const { confirmar, avisar } = useInteracoes();
   const [c, setC] = useState<Conta>(
     () =>
@@ -202,6 +220,10 @@ function FormConta({ inicial, aoFechar }: { inicial?: Conta; aoFechar: () => voi
         fundoEmergencia: false,
         arquivada: false,
         notas: '',
+        paraGastos: true,
+        politicaJuros: 'nao-atribuido',
+        jurosDestino: null,
+        produtoId: null,
       },
   );
   const [erro, setErro] = useState('');
@@ -252,6 +274,13 @@ function FormConta({ inicial, aoFechar }: { inicial?: Conta; aoFechar: () => voi
           <CampoTexto rotulo="Nome" valor={c.nome} mudar={(nome) => mudar({ nome })} obrigatorio exemplo="Ex.: Conta Poupança" />
           <CampoTexto rotulo="Instituição" valor={c.instituicao} mudar={(instituicao) => mudar({ instituicao })} exemplo="Ex.: Banco CTT" />
         </div>
+        <CampoEscolha
+          rotulo="Produto bancário correspondente (comparador)"
+          valor={c.produtoId ?? ''}
+          mudar={(v) => mudar({ produtoId: v || null })}
+          opcoes={[{ valor: '', nome: 'Nenhum / não está na base' }, ...base.produtos.map((p) => ({ valor: p.id, nome: `${base.instituicoes.find((i) => i.id === p.instituicaoId)?.nome ?? ''} · ${p.nome}` }))]}
+          dica="Permite avisar-te quando as condições deste produto mudam e calcular o impacto."
+        />
         <CampoEscolha rotulo="Tipo de conta" valor={c.tipo} mudar={(tipo) => mudar({ tipo })} opcoes={(Object.keys(NOMES_TIPO_CONTA) as TipoConta[]).map((t) => ({ valor: t, nome: NOMES_TIPO_CONTA[t] }))} />
         <div className="linha-campos">
           <CampoNumero rotulo="Saldo inicial" valor={c.saldoInicial} mudar={(v) => mudar({ saldoInicial: v ?? 0 })} dica="Saldo na data ao lado. Depois disso o saldo é calculado pelos movimentos." />
@@ -275,7 +304,31 @@ function FormConta({ inicial, aoFechar }: { inicial?: Conta; aoFechar: () => voi
             <CampoArea rotulo="Condições para a remuneração" valor={c.condicoes} mudar={(condicoes) => mudar({ condicoes })} />
           </>
         )}
-        <CampoCaixa rotulo="Faz parte do fundo de emergência" valor={c.fundoEmergencia} mudar={(fundoEmergencia) => mudar({ fundoEmergencia })} dica="O saldo desta conta conta para o fundo de emergência e não para o dinheiro disponível." />
+        {c.tipo !== 'refeicao' && c.tipo !== 'investimento' && (
+          <CampoCaixa
+            rotulo="Conta para gastos do dia a dia"
+            valor={c.paraGastos ?? c.tipo === 'ordem'}
+            mudar={(paraGastos) => mudar({ paraGastos })}
+            dica="O dinheiro livre desta conta entra no “Disponível para gastar”. O fundo de emergência define-se nas alocações."
+          />
+        )}
+        {remunerada && c.tipo !== 'refeicao' && (
+          <div className="linha-campos">
+            <CampoEscolha rotulo="Juros recebidos vão" valor={c.politicaJuros ?? 'nao-atribuido'} mudar={(politicaJuros: PoliticaJuros) => mudar({ politicaJuros })} opcoes={(Object.keys(NOMES_POLITICA) as PoliticaJuros[]).map((k) => ({ valor: k, nome: NOMES_POLITICA[k] }))} />
+            {c.politicaJuros === 'destino' && (
+              <CampoEscolha
+                rotulo="Destino dos juros"
+                valor={c.jurosDestino ?? ''}
+                mudar={(v) => mudar({ jurosDestino: v || null })}
+                opcoes={[
+                  { valor: '', nome: 'Escolher…' },
+                  ...estado.alocacoes.filter((a) => a.contaId === c.id).map((a) => ({ valor: a.id, nome: a.nome })),
+                  ...estado.objetivos.filter((o) => o.contaId === c.id).map((o) => ({ valor: `obj:${o.id}`, nome: `Objetivo: ${o.nome}` })),
+                ]}
+              />
+            )}
+          </div>
+        )}
         {inicial && <CampoCaixa rotulo="Arquivada" valor={c.arquivada} mudar={(arquivada) => mudar({ arquivada })} />}
         <CampoArea rotulo="Notas" valor={c.notas} mudar={(notas) => mudar({ notas })} />
         {erro && <p className="negativo pequeno">{erro}</p>}

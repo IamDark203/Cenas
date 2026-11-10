@@ -91,6 +91,21 @@ export function calcularAlertas(estado: Estado, hojeIso: string): Alerta[] {
       });
   }
 
+  // Alterações detetadas nos produtos bancários (Módulo 16), dos últimos 60 dias.
+  for (const x of estado.bancos?.alteracoes ?? []) {
+    if (x.data < somarDias(hojeIso, -60)) continue;
+    out.push({
+      id: `banco|${x.id}`,
+      nivel: x.impacto != null && x.impacto < 0 ? 'aviso' : 'info',
+      titulo: x.texto,
+      detalhe:
+        x.impacto != null
+          ? `Diferença estimada na remuneração anual líquida com o saldo atual: ${x.impacto >= 0 ? '+' : ''}${euro(x.impacto)}.`
+          : `Detetado a ${fmtData(x.data)}. Consulta o comparador bancário.`,
+      seccao: 'contas',
+    });
+  }
+
   const atual = composicao(estado, hojeIso);
   if (cfg.fundo) {
     const f = resumoFundo(estado, atual.fundoEmergencia);

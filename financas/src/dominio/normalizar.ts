@@ -1,4 +1,6 @@
-import { estadoVazio } from './dadosIniciais';
+import { CATEGORIAS_DESPESA, CATEGORIAS_RECEITA, estadoVazio } from './dadosIniciais';
+import { hoje } from './datas';
+import { saldoConta } from './saldos';
 import type { Estado } from './tipos';
 
 type Obj = Record<string, unknown>;
@@ -44,6 +46,10 @@ export function normalizarEstado(dados: unknown): Estado {
       limiteRemunerado: numOuNull(x.limiteRemunerado),
       fundoEmergencia: x.fundoEmergencia === true,
       arquivada: x.arquivada === true,
+      paraGastos: typeof x.paraGastos === 'boolean' ? x.paraGastos : x.tipo === 'ordem',
+      politicaJuros: ['nao-atribuido', 'proporcional', 'destino'].includes(x.politicaJuros as string) ? x.politicaJuros : 'nao-atribuido',
+      jurosDestino: typeof x.jurosDestino === 'string' ? x.jurosDestino : null,
+      produtoId: typeof x.produtoId === 'string' ? x.produtoId : null,
     })) as Estado['contas'],
     categorias: lista(d.categorias, (x) => ({ ...(x as object), nome: txt(x.nome, 'Categoria'), orcamento: numOuNull(x.orcamento) })) as Estado['categorias'],
     movimentos: lista(d.movimentos, (x) =>
@@ -73,6 +79,15 @@ export function normalizarEstado(dados: unknown): Estado {
     fundo: { ...base.fundo, ...(ehObj(d.fundo) ? (d.fundo as object) : {}) },
     cenarios: lista(d.cenarios, (x) => x as never),
     alertas: { ...base.alertas, ...(ehObj(d.alertas) ? (d.alertas as object) : {}) },
+    alocacoes: lista(d.alocacoes, (x) =>
+      typeof x.contaId === 'string'
+        ? { ...(x as object), nome: txt(x.nome, 'Alocação'), valor: Math.max(0, num(x.valor)), historico: Array.isArray(x.historico) ? x.historico : [] }
+        : null,
+    ) as Estado['alocacoes'],
+    prioridades: Array.isArray(d.prioridades) && d.prioridades.length === 4 ? (d.prioridades as Estado['prioridades']) : base.prioridades,
+    planoMensal: { ...base.planoMensal, ...(ehObj(d.planoMensal) ? (d.planoMensal as object) : {}) },
+    refeicao: { ...base.refeicao, ...(ehObj(d.refeicao) ? (d.refeicao as object) : {}) },
+    bancos: { ...base.bancos, ...(ehObj(d.bancos) ? (d.bancos as object) : {}) },
     alertasDispensados: Array.isArray(d.alertasDispensados) ? (d.alertasDispensados as unknown[]).filter((s): s is string => typeof s === 'string') : [],
     pressupostos: {
       ...base.pressupostos,
@@ -83,5 +98,50 @@ export function normalizarEstado(dados: unknown): Estado {
   estado.pressupostos.dca = { ...base.pressupostos.dca, ...(ehObj(p.dca) ? (p.dca as object) : {}) } as Estado['pressupostos']['dca'];
   estado.pressupostos.projecao = { ...base.pressupostos.projecao, ...(ehObj(p.projecao) ? (p.projecao as object) : {}) };
   estado.pressupostos.cotacoes = { ...base.pressupostos.cotacoes, ...(ehObj(p.cotacoes) ? (p.cotacoes as object) : {}) };
+  return migrar(estado, d);
+}
+
+/** Converte dados de versões anteriores da aplicação para o modelo atual, sem perder informação. */
+function migrar(estado: Estado, d: Obj): Estado {
+  // Categorias novas e marcação essencial/lazer das categorias predefinidas.
+  const ids = new Set(estado.categorias.map((c) => c.id));
+  for (const [id, nome, , t] of CATEGORIAS_DESPESA) {
+    if (!ids.has(id)) estado.categorias.push({ id, nome, tipo: 'despesa', orcamento: null, essencial: t === 'e', lazer: t === 'l' });
+  }
+  for (const [id, nome] of CATEGORIAS_RECEITA) if (!ids.has(id)) estado.categorias.push({ id, nome, tipo: 'receita', orcamento: null });
+  const marcacao = new Map(CATEGORIAS_DESPESA.map(([id, , , t]) => [id, t]));
+  estado.categorias = estado.categorias.map((c) =>
+    c.tipo === 'despesa' && c.essencial === undefined && c.lazer === undefined
+      ? { ...c, essencial: marcacao.get(c.id) === 'e', lazer: marcacao.get(c.id) === 'l' }
+      : c,
+  );
+  // Fundo: o "objetivo manual" antigo passa a ser o mínimo protegido.
+  if (estado.fundo.minimoProtegido === undefined) {
+    estado.fundo = { ...estado.fundo, minimoProtegido: estado.fundo.objetivoManual ?? null, objetivoManual: null };
+  }
+  if (estado.fundo.modo === undefined) estado.fundo = { ...estado.fundo, modo: 'automatico', usarSugestao: false };
+  // Contas marcadas como fundo de emergência passam a ter uma alocação igual ao saldo atual.
+  if (!Array.isArray(d.alocacoes)) {
+    const data = hoje();
+    for (const c of estado.contas) {
+      if (!c.fundoEmergencia) continue;
+      const saldo = saldoConta(estado, c, data);
+      if (saldo > 0) {
+        estado.alocacoes.push({
+          id: `aloc-fundo-${c.id}`,
+          contaId: c.id,
+          nome: 'Fundo de emergência',
+          tipo: 'fundo',
+          valor: saldo,
+          historico: [{ data, delta: saldo, motivo: 'Migração: a conta estava marcada como fundo de emergência' }],
+        });
+      }
+    }
+    estado.contas = estado.contas.map((c) => ({ ...c, fundoEmergencia: false }));
+  }
+  // Liga a conta poupança do Banco CTT ao produto do comparador (se ainda não estiver ligada).
+  estado.contas = estado.contas.map((c) =>
+    !c.produtoId && c.tipo === 'poupanca' && /ctt/i.test(c.instituicao) && /poupan/i.test(c.nome) ? { ...c, produtoId: 'ctt-conta-poupanca-livre' } : c,
+  );
   return estado;
 }

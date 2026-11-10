@@ -17,10 +17,12 @@ const TIPOS: { valor: TipoMovimento; nome: string }[] = [
 export function FormMovimento({
   inicial,
   tipoInicial = 'despesa',
+  meioInicial,
   aoFechar,
 }: {
   inicial?: Movimento;
   tipoInicial?: TipoMovimento;
+  meioInicial?: MeioPagamento;
   aoFechar: () => void;
 }) {
   const { estado, atualizar, hoje } = useLoja();
@@ -35,10 +37,13 @@ export function FormMovimento({
         data: hoje,
         valor: 0,
         descricao: '',
-        contaId: contas[0]?.valor ?? '',
+        contaId: meioInicial === 'refeicao' && refeicao[0] ? refeicao[0].valor : contas[0]?.valor ?? '',
         contaDestinoId: contas[1]?.valor ?? null,
-        categoriaId: opcoesCategorias(estado, tipoInicial === 'receita' ? 'receita' : 'despesa')[0]?.valor ?? null,
-        meio: tipoInicial === 'despesa' ? 'cartao' : null,
+        categoriaId:
+          meioInicial === 'refeicao' && estado.refeicao.finalidadeIds[0]
+            ? estado.refeicao.finalidadeIds[0]
+            : opcoesCategorias(estado, tipoInicial === 'receita' ? 'receita' : 'despesa')[0]?.valor ?? null,
+        meio: tipoInicial === 'despesa' ? meioInicial ?? 'cartao' : null,
         fixa: false,
         recorrenteId: null,
         valorBruto: null,

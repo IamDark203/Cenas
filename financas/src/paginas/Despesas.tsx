@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { CampoEscolha, CampoNumero, CampoTexto } from '../componentes/campos';
+import { useInteracoes } from '../componentes/janelas';
 import { FormMovimento } from '../componentes/FormMovimento';
 import { FormRecorrente } from '../componentes/FormRecorrente';
 import { GraficoSeries, useCores } from '../componentes/graficos';
 import { Icone } from '../componentes/icones';
 import { ListaMovimentos } from '../componentes/ListaMovimentos';
-import { Aviso, Barra, Cartao, Etiqueta, Kpi, Vazio } from '../componentes/ui';
+import { Aviso, Barra, Cartao, Etiqueta, Kpi, LinhasResumo, Vazio } from '../componentes/ui';
+import { orcamentoLazer, resumoRefeicao } from '../dominio/orcamento';
 import { diasNoMes, mesDe, mesesEntre, somarMesesMes } from '../dominio/datas';
 import { data as fmtData, euro, euroRedondo, mesCurto, mesLongo, pct } from '../dominio/formato';
 import { despesasPorCategoria, nomeCategoria, orcamentoMes, primeiroMes, serieFluxos } from '../dominio/fluxos';
@@ -14,11 +16,12 @@ import type { MeioPagamento, Recorrente } from '../dominio/tipos';
 import { NOMES_MEIO, nomeConta, useResumo } from '../estado/derivados';
 import { useLoja } from '../estado/loja';
 
-type Separador = 'movimentos' | 'recorrentes' | 'orcamento' | 'calendario' | 'historico';
+type Separador = 'movimentos' | 'recorrentes' | 'orcamento' | 'lazer' | 'calendario' | 'historico';
 const SEPARADORES: [Separador, string][] = [
   ['movimentos', 'Movimentos'],
   ['recorrentes', 'Recorrentes'],
   ['orcamento', 'Orçamento'],
+  ['lazer', 'Lazer'],
   ['calendario', 'Calendário'],
   ['historico', 'Histórico'],
 ];
@@ -37,6 +40,7 @@ export default function Despesas() {
       {sep === 'movimentos' && <Movimentos />}
       {sep === 'recorrentes' && <Recorrentes />}
       {sep === 'orcamento' && <Orcamento />}
+      {sep === 'lazer' && <Lazer />}
       {sep === 'calendario' && <Calendario />}
       {sep === 'historico' && <Historico />}
     </>
@@ -362,6 +366,85 @@ function Historico() {
           <p className="suave pequeno">Sem despesas no período.</p>
         )}
       </Cartao>
+    </>
+  );
+}
+
+function Lazer() {
+  const { estado, atualizar, hoje } = useLoja();
+  const { avisar } = useInteracoes();
+  const c = useCores();
+  const l = orcamentoLazer(estado, hoje);
+  const ref = resumoRefeicao(estado, hoje);
+  const p = l.plano;
+  const [pcts, setPcts] = useState<Record<string, number>>(() =>
+    Object.fromEntries(l.linhas.map((x) => [x.categoria.id, l.distribuido > 0 ? Math.round(((x.orcamento ?? 0) / l.distribuido) * 1000) / 10 : Math.round(1000 / Math.max(1, l.linhas.length)) / 10])),
+  );
+  const soma = Object.values(pcts).reduce((s, v) => s + v, 0);
+  const restaurantes = l.linhas.find((x) => /restaura/i.test(x.categoria.nome));
+  const refeicaoParaRestaurantes = restaurantes && estado.refeicao.finalidadeIds.includes(restaurantes.categoria.id);
+  return (
+    <>
+      <div className="kpis">
+        <Kpi rotulo="Orçamento mensal de lazer" valor={euro(l.total)} detalhe="O que sobra depois de despesas, compromissos, reforços e investimentos" />
+        <Kpi rotulo="Já gasto este mês" valor={euro(l.gasto)} detalhe="Pago com dinheiro" />
+        <Kpi rotulo="Restante" valor={euro(l.restante)} classeValor={l.restante < 0 ? 'negativo' : 'positivo'} />
+        <Kpi rotulo="Utilizado" valor={pct(l.utilizacao)} />
+      </div>
+      <Barra grande fracao={l.utilizacao} cor={l.utilizacao > 1 ? c.negativo : l.utilizacao > 0.85 ? 'var(--aviso)' : c.acento} />
+      {p.discricionario < 0 && <Aviso>As despesas, compromissos e reforços planeados já excedem o rendimento em {euro(-p.discricionario)}: não sobra orçamento para lazer.</Aviso>}
+      {ref.contas.length > 0 && (
+        <Aviso tom="info">
+          Cartão-refeição (à parte): saldo de {euro(ref.saldo)}, {euro(Math.max(0, ref.restanteMes))} ainda por usar este mês
+          {refeicaoParaRestaurantes ? ', que podem pagar restaurantes sem gastar o orçamento de lazer.' : '. Para o usares em restaurantes, marca “Restaurantes” na finalidade do cartão.'}
+        </Aviso>
+      )}
+      <div className="grelha">
+        <Cartao titulo="Como é calculado">
+          <LinhasResumo
+            linhas={[
+              ['Rendimento líquido', euro(p.rendimento)],
+              ['− Despesas essenciais', euro(-p.despesasEssenciais)],
+              ['− Despesas fixas', euro(-p.despesasFixas)],
+              ['− Compromissos financeiros', euro(-p.compromissos)],
+              ['− Reforço do fundo de emergência', euro(-p.reforcoFundo)],
+              ['− Reforços de objetivos', euro(-p.reforcoObjetivos)],
+              ['− Investimentos programados', euro(-p.investimento)],
+              ['− Outras poupanças planeadas', euro(-p.outrasPoupancas)],
+              ['= Orçamento de lazer', euro(p.discricionario), 'total'],
+            ]}
+          />
+        </Cartao>
+        <Cartao titulo="Distribuição por categoria" subtitulo="Escolhe as percentagens e aplica ao orçamento das categorias.">
+          {l.linhas.map((x) => (
+            <div key={x.categoria.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 96px', gap: 10, alignItems: 'end' }}>
+              <div className="linha-barra">
+                <div className="cabeca">
+                  <span>{x.categoria.nome}</span>
+                  <span className="num suave">
+                    {euro(x.gastoDinheiro)} de {euro((l.total * (pcts[x.categoria.id] ?? 0)) / 100)}
+                    {x.gastoRefeicao > 0 && ` · ${euro(x.gastoRefeicao)} cartão`}
+                  </span>
+                </div>
+                <Barra fracao={l.total > 0 && pcts[x.categoria.id] ? x.gastoDinheiro / ((l.total * pcts[x.categoria.id]) / 100) : 0} cor={c.serie[3]} />
+              </div>
+              <CampoNumero rotulo="%" sufixo="%" min={0} max={100} valor={pcts[x.categoria.id] ?? 0} mudar={(v) => setPcts({ ...pcts, [x.categoria.id]: v ?? 0 })} />
+            </div>
+          ))}
+          <p className={`pequeno ${Math.abs(soma - 100) > 0.05 ? 'negativo' : 'suave'}`}>Soma: {pct(soma / 100)}</p>
+          <button
+            type="button"
+            className="primario"
+            disabled={Math.abs(soma - 100) > 0.05 || l.total <= 0}
+            onClick={() => {
+              atualizar((e) => ({ ...e, categorias: e.categorias.map((cat) => (pcts[cat.id] != null && cat.lazer ? { ...cat, orcamento: Math.round(l.total * pcts[cat.id]) / 100 } : cat)) }));
+              avisar('Orçamentos das categorias de lazer atualizados.');
+            }}
+          >
+            Aplicar ao orçamento
+          </button>
+        </Cartao>
+      </div>
     </>
   );
 }

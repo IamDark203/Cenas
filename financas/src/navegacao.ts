@@ -1,6 +1,9 @@
 export type IdSeccao =
   | 'painel'
+  | 'assistente'
   | 'receitas'
+  | 'refeicao'
+  | 'comparador'
   | 'despesas'
   | 'contas'
   | 'fundo'

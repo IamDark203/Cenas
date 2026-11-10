@@ -3,14 +3,17 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ProvedorInteracoes } from './componentes/janelas';
 import { ProvedorLoja } from './estado/loja';
+import { ProvedorProdutos } from './estado/produtos';
 import './estilos.css';
 
 createRoot(document.getElementById('raiz') as HTMLElement).render(
   <StrictMode>
     <ProvedorLoja>
-      <ProvedorInteracoes>
-        <App />
-      </ProvedorInteracoes>
+      <ProvedorProdutos>
+        <ProvedorInteracoes>
+          <App />
+        </ProvedorInteracoes>
+      </ProvedorProdutos>
     </ProvedorLoja>
   </StrictMode>,
 );

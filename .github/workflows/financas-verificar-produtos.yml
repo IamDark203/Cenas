@@ -1,0 +1,46 @@
+# Verificação semanal das fontes oficiais dos produtos bancários do comparador da app de finanças.
+# Atualiza contas-da-casa/dados/produtos.json no branch site-financas (servido pelo GitHub Pages).
+# Nota: workflows agendados só correm a partir do branch predefinido do repositório.
+name: Finanças — verificar produtos bancários
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: financas-verificar-produtos
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter o script de verificação
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: financas/scripts
+      - name: Obter o site publicado
+        uses: actions/checkout@v4
+        with:
+          ref: site-financas
+          path: site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar pdftotext
+        run: sudo apt-get install -y poppler-utils
+      - name: Verificar fontes oficiais
+        run: node financas/scripts/verificar-fontes.mjs site/contas-da-casa/dados/produtos.json
+      - name: Publicar alterações
+        working-directory: site
+        run: |
+          if git diff --quiet; then echo "Sem alterações."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add contas-da-casa/dados/produtos.json
+          git commit -m "Verificação automática das fontes dos produtos bancários"
+          git push origin HEAD:site-financas

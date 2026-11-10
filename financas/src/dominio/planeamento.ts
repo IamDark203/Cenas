@@ -1,31 +1,133 @@
-import { diferencaDias, mesDe } from './datas';
+import { diferencaDias, hoje, mesDe, somarMesesMes } from './datas';
+import { inicioDados } from './fluxos';
 import { equivalenteMensal } from './recorrencias';
 import type { Estado, Objetivo } from './tipos';
 
 // ---------- Fundo de emergência ----------
 
-export function despesaEssencialMensal(estado: Estado): number {
-  const ids = new Set(estado.fundo.essenciaisIds);
-  const recorrentes = estado.recorrentes
-    .filter((r) => r.ativo && r.tipo === 'despesa' && ids.has(r.id))
-    .reduce((s, r) => s + equivalenteMensal(r), 0);
-  return recorrentes + estado.fundo.necessidadesBasicas;
+export interface LinhaEssencial {
+  id: string;
+  nome: string;
+  /** Média mensal das despesas recorrentes (anuais convertidas em média mensal). */
+  plano: number;
+  /** Média mensal real dos últimos meses completos (0 se ainda não há histórico). */
+  historico: number;
+  /** Valor usado: o maior dos dois, para não subestimar a necessidade. */
+  valor: number;
+  /** Parte paga com cartão-refeição (em desemprego o benefício pode acabar, a necessidade mantém-se). */
+  viaRefeicao: number;
 }
 
-export function objetivoCalculadoFundo(estado: Estado, meses = estado.fundo.meses): number {
+/** Despesas essenciais por categoria (modo automático). */
+export function detalheEssenciais(estado: Estado, hojeIso = hoje()): LinhaEssencial[] {
+  const refeicao = new Set(estado.contas.filter((c) => c.tipo === 'refeicao').map((c) => c.id));
+  const mesAtual = mesDe(hojeIso);
+  const comeco = mesDe(inicioDados(estado, hojeIso));
+  // Últimos 3 meses completos com dados.
+  const meses = [1, 2, 3].map((n) => somarMesesMes(mesAtual, -n)).filter((m) => m >= comeco);
+  return estado.categorias
+    .filter((c) => c.tipo === 'despesa' && c.essencial)
+    .map((c) => {
+      let plano = 0;
+      let viaRefeicao = 0;
+      for (const r of estado.recorrentes) {
+        if (!r.ativo || r.tipo !== 'despesa' || r.porDefinir || r.categoriaId !== c.id) continue;
+        const v = equivalenteMensal(r);
+        plano += v;
+        if (refeicao.has(r.contaId)) viaRefeicao += v;
+      }
+      let historico = 0;
+      if (meses.length) {
+        const set = new Set(meses);
+        const total = estado.movimentos.filter((m) => m.tipo === 'despesa' && m.categoriaId === c.id && set.has(mesDe(m.data))).reduce((s, m) => s + m.valor, 0);
+        historico = total / meses.length;
+      }
+      return { id: c.id, nome: c.nome, plano, historico, valor: Math.max(plano, historico), viaRefeicao };
+    })
+    .filter((l) => l.valor > 0);
+}
+
+export function despesaEssencialMensal(estado: Estado, hojeIso = hoje()): number {
+  if ((estado.fundo.modo ?? 'automatico') === 'manual') {
+    const ids = new Set(estado.fundo.essenciaisIds);
+    return (
+      estado.recorrentes.filter((r) => r.ativo && r.tipo === 'despesa' && ids.has(r.id)).reduce((s, r) => s + equivalenteMensal(r), 0) +
+      estado.fundo.necessidadesBasicas
+    );
+  }
+  return detalheEssenciais(estado, hojeIso).reduce((s, l) => s + l.valor, 0) + estado.fundo.necessidadesBasicas;
+}
+
+/** Número de fontes de rendimento em dinheiro, regulares (exclui subsídios anuais e benefícios). */
+export function fontesRendimento(estado: Estado): number {
+  const refeicao = new Set(estado.contas.filter((c) => c.tipo === 'refeicao').map((c) => c.id));
+  return estado.recorrentes.filter((r) => r.ativo && r.tipo === 'receita' && !r.porDefinir && !refeicao.has(r.contaId) && r.periodicidade !== 'anual' && r.periodicidade !== 'unica').length;
+}
+
+/**
+ * Sugere 3, 6, 9 ou 12 meses de cobertura a partir da situação profissional e familiar.
+ * Cada fator de risco acrescenta pontos; mais pontos, mais meses.
+ */
+export function sugestaoCobertura(estado: Estado): { meses: number; fatores: string[] } {
+  const p = estado.perfil;
+  const fatores: string[] = [];
+  let pontos = 0;
+  const est = p.estabilidade ?? 'estavel';
+  if (est === 'moderada') {
+    pontos += 1;
+    fatores.push('Estabilidade profissional moderada (+1)');
+  } else if (est === 'instavel') {
+    pontos += 3;
+    fatores.push('Situação profissional instável (+3)');
+  } else fatores.push('Situação profissional estável (0)');
+  if ((p.regularidade ?? 'regular') === 'variavel') {
+    pontos += 2;
+    fatores.push('Rendimentos irregulares (+2)');
+  }
+  const fontes = fontesRendimento(estado);
+  if (fontes <= 1) {
+    pontos += 1;
+    fatores.push(`${fontes === 0 ? 'Sem' : 'Uma única'} fonte de rendimento regular (+1)`);
+  } else fatores.push(`${fontes} fontes de rendimento (0)`);
+  const dep = p.dependentes ?? 0;
+  if (dep > 0) {
+    const d = dep >= 3 ? 2 : 1;
+    pontos += d;
+    fatores.push(`${dep} dependente(s) (+${d})`);
+  }
+  const meses = pontos <= 0 ? 3 : pontos <= 2 ? 6 : pontos <= 4 ? 9 : 12;
+  return { meses, fatores };
+}
+
+export function mesesFundo(estado: Estado): number {
+  return estado.fundo.usarSugestao ? sugestaoCobertura(estado).meses : estado.fundo.meses;
+}
+
+/** Fundo calculado = despesas essenciais mensais × meses de cobertura (+ despesas extraordinárias indicadas). */
+export function objetivoCalculadoFundo(estado: Estado, meses = mesesFundo(estado), hojeIso = hoje()): number {
   const extra = estado.fundo.extraordinarias.reduce((s, e) => s + e.valor, 0);
-  return meses * despesaEssencialMensal(estado) + extra;
+  return meses * despesaEssencialMensal(estado, hojeIso) + extra;
 }
 
-export function resumoFundo(estado: Estado, capital: number) {
-  const essencial = despesaEssencialMensal(estado);
-  const objetivo = estado.fundo.objetivoManual ?? objetivoCalculadoFundo(estado);
+export function resumoFundo(estado: Estado, capital: number, hojeIso = hoje()) {
+  const essencial = despesaEssencialMensal(estado, hojeIso);
+  const meses = mesesFundo(estado);
+  const calculado = objetivoCalculadoFundo(estado, meses, hojeIso);
+  const recomendado = objetivoCalculadoFundo(estado, sugestaoCobertura(estado).meses, hojeIso);
+  const minimo = estado.fundo.minimoProtegido ?? 0;
+  // Objetivo efetivo: o maior entre o valor calculado e o mínimo protegido.
+  const objetivo = Math.max(calculado, minimo);
   const falta = Math.max(0, objetivo - capital);
   const reforco = estado.fundo.reforcoMensal;
   return {
     capital,
     essencial,
+    meses,
+    calculado,
+    recomendado,
+    minimo,
     objetivo,
+    origemObjetivo: minimo > calculado ? ('minimo' as const) : ('calculado' as const),
     falta,
     progresso: objetivo > 0 ? Math.min(1, capital / objetivo) : 0,
     mesesCobertos: essencial > 0 ? capital / essencial : null,

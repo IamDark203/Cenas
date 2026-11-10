@@ -25,6 +25,10 @@ function conta(p: Partial<Conta> & Pick<Conta, 'id' | 'nome' | 'tipo'>, data: st
     fundoEmergencia: false,
     arquivada: false,
     notas: '',
+    paraGastos: p.tipo === 'ordem',
+    politicaJuros: 'nao-atribuido',
+    jurosDestino: null,
+    produtoId: null,
     ...p,
   };
 }
@@ -50,26 +54,33 @@ function rec(p: Partial<Recorrente> & Pick<Recorrente, 'id' | 'tipo' | 'descrica
   };
 }
 
-const CATEGORIAS_DESPESA: [string, string, number | null][] = [
-  ['cat-habitacao', 'Habitação', 38],
-  ['cat-alimentacao', 'Alimentação', 50],
-  ['cat-transportes', 'Transportes e combustível', null],
-  ['cat-saude', 'Saúde', 25],
-  ['cat-subscricoes', 'Subscrições', 14.99],
-  ['cat-lazer', 'Lazer', null],
-  ['cat-automoveis', 'Automóveis', null],
-  ['cat-compras', 'Compras pessoais', null],
-  ['cat-seguros', 'Seguros', null],
-  ['cat-outros', 'Outros', null],
+// [id, nome, orçamento, tipo] — e: essencial, l: lazer, '': fixa/outra
+export const CATEGORIAS_DESPESA: [string, string, number | null, 'e' | 'l' | ''][] = [
+  ['cat-habitacao', 'Habitação', 38, 'e'],
+  ['cat-alimentacao', 'Alimentação', 50, 'e'],
+  ['cat-transportes', 'Transportes e combustível', null, 'e'],
+  ['cat-saude', 'Saúde', 25, 'e'],
+  ['cat-subscricoes', 'Subscrições', 14.99, ''],
+  ['cat-lazer', 'Lazer', null, 'l'],
+  ['cat-automoveis', 'Automóveis', null, 'e'],
+  ['cat-compras', 'Compras pessoais', null, 'l'],
+  ['cat-seguros', 'Seguros', null, 'e'],
+  ['cat-emprestimos', 'Empréstimos e prestações', null, 'e'],
+  ['cat-restaurantes', 'Restaurantes', null, 'l'],
+  ['cat-entretenimento', 'Entretenimento', null, 'l'],
+  ['cat-viagens', 'Viagens', null, 'l'],
+  ['cat-hobbies', 'Hobbies', null, 'l'],
+  ['cat-outros', 'Outros', null, ''],
 ];
 
-const CATEGORIAS_RECEITA: [string, string][] = [
+export const CATEGORIAS_RECEITA: [string, string][] = [
   ['rec-salario', 'Salário'],
   ['rec-alimentacao', 'Subsídio de alimentação'],
   ['rec-ferias', 'Subsídio de férias'],
   ['rec-natal', 'Subsídio de Natal'],
   ['rec-freelance', 'Trabalhos freelance'],
   ['rec-investimentos', 'Rendimentos de investimentos'],
+  ['rec-juros', 'Juros de poupança'],
   ['rec-outros', 'Outros rendimentos'],
 ];
 
@@ -86,10 +97,13 @@ export function estadoVazio(dataIso = hoje()): Estado {
       moeda: 'EUR',
       tema: 'sistema',
       incluirRefeicaoPatrimonio: true,
+      dependentes: 0,
+      estabilidade: 'estavel',
+      regularidade: 'regular',
     },
     contas: [],
     categorias: [
-      ...CATEGORIAS_DESPESA.map(([id, nome, orcamento]): Categoria => ({ id, nome, tipo: 'despesa', orcamento })),
+      ...CATEGORIAS_DESPESA.map(([id, nome, orcamento, t]): Categoria => ({ id, nome, tipo: 'despesa', orcamento, essencial: t === 'e', lazer: t === 'l' })),
       ...CATEGORIAS_RECEITA.map(([id, nome]): Categoria => ({ id, nome, tipo: 'receita', orcamento: null })),
     ],
     movimentos: [],
@@ -98,7 +112,17 @@ export function estadoVazio(dataIso = hoje()): Estado {
     ativos: [],
     operacoes: [],
     alocacaoAlvo: { 'etf-acoes': 0, 'etf-obrigacoes': 0, acoes: 0, outros: 0 },
-    fundo: { meses: 6, essenciaisIds: [], necessidadesBasicas: 0, extraordinarias: [], objetivoManual: null, reforcoMensal: 0 },
+    fundo: {
+      modo: 'automatico',
+      usarSugestao: true,
+      minimoProtegido: null,
+      meses: 6,
+      essenciaisIds: [],
+      necessidadesBasicas: 0,
+      extraordinarias: [],
+      objetivoManual: null,
+      reforcoMensal: 0,
+    },
     cenarios: [],
     alertas: {
       recorrentes: true,
@@ -127,6 +151,20 @@ export function estadoVazio(dataIso = hoje()): Estado {
       },
       cotacoes: { url: '', caminho: '' },
     },
+    alocacoes: [],
+    prioridades: ['fundo', 'objetivos', 'investimentos', 'disponivel'],
+    planoMensal: { investimento: 0, outrasPoupancas: 0 },
+    refeicao: { finalidadeIds: [] },
+    bancos: {
+      requisitosCumpridos: [],
+      instituicoesCliente: [],
+      liquidez: 'imediata',
+      semComissoes: false,
+      incluirContaOrdem: true,
+      instantaneo: {},
+      ultimaConsulta: null,
+      alteracoes: [],
+    },
   };
 }
 
@@ -148,7 +186,7 @@ export function estadoInicial(dataIso = hoje()): Estado {
         saldoInicial: 5000,
         tanb: 3,
         limiteRemunerado: 5000,
-        fundoEmergencia: true,
+        produtoId: 'ctt-conta-poupanca-livre',
         condicoes: 'Taxa e condições indicadas pelo utilizador. Podem mudar; confirma junto do banco.',
       },
       dataIso,
@@ -238,5 +276,17 @@ export function estadoInicial(dataIso = hoje()): Estado {
     }),
   ];
   e.fundo = { ...e.fundo, essenciaisIds: ['r-gas', 'r-saude', 'r-combustivel', 'r-refeicoes'] };
+  e.alocacoes = [
+    {
+      id: 'aloc-fundo-ctt',
+      contaId: 'conta-ctt',
+      nome: 'Fundo de emergência',
+      tipo: 'fundo',
+      valor: 5000,
+      historico: [{ data: dataIso, delta: 5000, motivo: 'Valor inicial (ajusta se só parte do saldo for o fundo)' }],
+    },
+  ];
+  e.refeicao = { finalidadeIds: ['cat-alimentacao', 'cat-restaurantes'] };
+  e.bancos = { ...e.bancos, instituicoesCliente: ['banco-ctt'] };
   return e;
 }

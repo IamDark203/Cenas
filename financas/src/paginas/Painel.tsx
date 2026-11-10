@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Segmentos } from '../componentes/campos';
+import { DistribuirReforco } from '../componentes/DistribuirReforco';
+import { Modal } from '../componentes/janelas';
+import { sugestoesAssistente } from '../dominio/assistente';
+import { disponivelParaGastar, orcamentoDoMes } from '../dominio/orcamento';
 import { GraficoDonut, GraficoSeries, useCores } from '../componentes/graficos';
-import { Aviso, Barra, Cartao, Kpi, Vazio } from '../componentes/ui';
+import { Aviso, Barra, Cartao, Kpi, LinhasResumo, Vazio } from '../componentes/ui';
 import { NOMES_PERIODO, fimMes, mesDe, mesesDoPeriodo, somarDias, type Periodo } from '../dominio/datas';
 import { data as fmtData, euro, euroRedondo, mesCurto, pct, sinal } from '../dominio/formato';
 import { inicioDados, orcamentoMes, primeiroMes, serieFluxos, somarFluxos } from '../dominio/fluxos';
@@ -59,6 +63,11 @@ export default function Painel() {
   }, [estado, periodo, mesRef, hoje, atual.patrimonio]);
 
   const carteira = useMemo(() => resumoCarteira(estado), [estado]);
+  const disp = useMemo(() => disponivelParaGastar(estado, hoje), [estado, hoje]);
+  const orcMes = useMemo(() => orcamentoDoMes(estado, hoje), [estado, hoje]);
+  const sugestoes = useMemo(() => sugestoesAssistente(estado, hoje), [estado, hoje]);
+  const [detalhe, setDetalhe] = useState<'agora' | 'mes' | null>(null);
+  const [distribuir, setDistribuir] = useState(false);
   const proximos = useMemo(
     () => ocorrenciasEntre(estado, hoje, somarDias(hoje, 14)).filter((o) => !o.lancada && o.recorrente.tipo !== 'transferencia'),
     [estado, hoje],
@@ -99,7 +108,19 @@ export default function Painel() {
       <div className="kpis">
         <Kpi destaque rotulo="Património financeiro total" valor={euro(atual.patrimonio)} detalhe={d.evolucao.length > 1 ? `${sinal(d.variacao)} ${umMes ? 'este mês' : `desde ${mesCurto(d.meses[0])}`}` : 'Registos a partir de hoje'} />
         <Kpi rotulo="Saldo das contas bancárias" valor={euro(atual.bancario)} detalhe="À ordem, poupança e depósitos" />
-        <Kpi rotulo="Disponível para utilizar" valor={euro(atual.disponivel)} cor={c.serie[0]} detalhe="Contas à ordem fora do fundo" classeValor={atual.disponivel < 0 ? 'negativo' : ''} />
+        <button type="button" className="kpi" style={{ textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'grid', justifyItems: 'start', whiteSpace: 'normal' }} onClick={() => setDetalhe('agora')}>
+          <span className="rotulo">
+            <span className="ponto" style={{ background: c.serie[0] }} />
+            Disponível para gastar agora
+          </span>
+          <span className={`valor ${disp.agora < 0 ? 'negativo' : ''}`}>{euro(disp.agora)}</span>
+          <span className="detalhe">Livre de alocações e compromissos · ver cálculo</span>
+        </button>
+        <button type="button" className="kpi" style={{ textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'grid', justifyItems: 'start', whiteSpace: 'normal' }} onClick={() => setDetalhe('mes')}>
+          <span className="rotulo">Orçamento disponível para o mês</span>
+          <span className={`valor ${orcMes.restante < 0 ? 'negativo' : ''}`}>{euro(orcMes.restante)}</span>
+          <span className="detalhe">De {euro(orcMes.orcamento)} planeados · ver cálculo</span>
+        </button>
         <Kpi rotulo="Total de poupanças" valor={euro(atual.poupancas)} cor={c.serie[1]} detalhe="Sem o fundo de emergência" />
         <Kpi rotulo="Fundo de emergência" valor={euro(atual.fundoEmergencia)} cor={c.serie[5]} detalhe="Reservado à parte" />
         <Kpi rotulo="Capital investido" valor={euro(carteira.investido)} cor={c.serie[3]} detalhe={carteira.investido > 0 ? `Valor atual ${euro(carteira.valor)} (${sinal(carteira.ganhoLatente)})` : 'Sem investimentos'} />
@@ -173,6 +194,19 @@ export default function Painel() {
             <p className="suave pequeno">Define orçamentos por categoria em Despesas.</p>
           )}
         </Cartao>
+        {sugestoes.length > 0 && (
+          <Cartao titulo="Assistente" acoes={<button type="button" className="pequeno" onClick={() => irPara('assistente')}>Ver todas ({sugestoes.length})</button>}>
+            {sugestoes.slice(0, 3).map((s) => (
+              <Aviso key={s.id} tom={s.tom === 'positivo' ? 'positivo' : s.tom === 'aviso' ? 'aviso' : 'info'}>
+                <strong>{s.titulo}</strong>
+                <div className="pequeno">{s.origem}</div>
+              </Aviso>
+            ))}
+            <button type="button" className="primario" style={{ justifySelf: 'start' }} onClick={() => setDistribuir(true)}>
+              Distribuir um reforço
+            </button>
+          </Cartao>
+        )}
         <Cartao titulo="Alertas" acoes={<button type="button" className="pequeno" onClick={() => irPara('alertas')}>Ver todos ({alertas.length})</button>}>
           {alertas.length ? (
             alertas.slice(0, 4).map((a) => (
@@ -186,6 +220,36 @@ export default function Painel() {
           )}
         </Cartao>
       </div>
+      {distribuir && <DistribuirReforco aoFechar={() => setDistribuir(false)} />}
+      {detalhe === 'agora' && (
+        <Modal titulo="Disponível para gastar agora" aoFechar={() => setDetalhe(null)}>
+          <p className="suave pequeno">Dinheiro das contas para gastos ({disp.contas.map((x) => x.nome).join(', ') || 'nenhuma'}) que não está reservado nem comprometido. Exclui investimentos, cartão-refeição e contas que não marcaste para gastos.</p>
+          <LinhasResumo
+            linhas={[
+              ['Saldo das contas para gastos', euro(disp.saldo)],
+              ['− Capital alocado (fundo, objetivos, despesas futuras)', euro(-disp.alocado)],
+              ...disp.compromissos.map((x): [string, string] => [`− ${x.descricao}${x.data ? ` (${fmtData(x.data)})` : ''}`, euro(-x.valor)]),
+              ['Disponível para gastar agora', euro(disp.agora), 'total'],
+            ]}
+          />
+        </Modal>
+      )}
+      {detalhe === 'mes' && (
+        <Modal titulo="Orçamento disponível para o mês" aoFechar={() => setDetalhe(null)}>
+          <p className="suave pequeno">O que podes usar este mês em despesas não planeadas, depois das despesas programadas, poupanças e reforços. Não inclui o cartão-refeição.</p>
+          <LinhasResumo
+            linhas={[
+              ['Rendimentos recebidos este mês', euro(orcMes.recebido)],
+              ['+ Rendimentos ainda previstos', euro(orcMes.porReceber)],
+              ['− Despesas programadas (pagas e por pagar)', euro(-orcMes.despesasProgramadas)],
+              ['− Reforços, investimentos e poupanças planeados', euro(-orcMes.reforcos)],
+              ['= Orçamento do mês', euro(orcMes.orcamento), 'total'],
+              ['− Gastos fora do plano já feitos', euro(-orcMes.gastoForaPlano)],
+              ['Restante', euro(orcMes.restante), 'total'],
+            ]}
+          />
+        </Modal>
+      )}
     </>
   );
 }

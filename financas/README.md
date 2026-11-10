@@ -37,12 +37,22 @@ No iPhone: abrir no Safari → Partilhar → **Adicionar ao ecrã principal**. F
 | Relatórios | Mensais e anuais com comparação; exportação PDF, Excel e CSV |
 | Definições | Perfil, tema, mês de referência, categorias, pressupostos, palavra-passe, cópias de segurança |
 
+## Assistente financeiro e comparador bancário
+
+- **Fundo de emergência inteligente:** despesas essenciais calculadas pelas categorias (plano e média real), sugestão de 3/6/9/12 meses pela estabilidade profissional, regularidade, fontes de rendimento e dependentes, e valor mínimo protegido (nunca reduzido sem confirmação). Objetivo efetivo = maior entre o calculado e o mínimo.
+- **Alocações virtuais:** cada conta divide o saldo por fundo, objetivos, despesas futuras, etc. A soma nunca ultrapassa o saldo e não cria património. Política de juros por conta: capital não atribuído (predefinida), proporcional ou destino específico.
+- **Distribuição de reforços:** proposta pela ordem de prioridade configurada; só atualiza alocações depois de confirmada e nunca executa transferências.
+- **Disponível para gastar agora** e **orçamento disponível para o mês** (indicadores distintos, com o cálculo visível).
+- **Cartão-refeição** independente, **planeador e viabilidade de objetivos**, **orçamento de lazer** e **assistente de sugestões** — todos a partir do mesmo plano mensal (`src/dominio/orcamento.ts`).
+- **Comparador bancário:** base `public/dados/produtos.json` com dados da documentação oficial (FIN), fonte e data de verificação por produto; "Não disponível" quando a fonte não indica o dado. Simulador diário (escalões, limite remunerado, base 360/365, datas de pagamento, capitalização, promoções, prazos e renovação, penalizações, comissões e imposto configurável), ranking personalizado, integração com o fundo e alertas de alterações com impacto.
+- **Atualização automática:** `.github/workflows/financas-verificar-produtos.yml` corre `scripts/verificar-fontes.mjs` todas as semanas (e manualmente), compara a impressão digital de cada documento oficial e marca como "desatualizada" a informação cuja fonte mudou, guardando o histórico. Workflows agendados só correm a partir do branch predefinido do repositório.
+
 ## Desenvolvimento
 
 ```bash
 npm install
 npm run dev      # servidor de desenvolvimento
-npm test         # testes do domínio (vitest)
+npm test         # testes do domínio e de aceitação A–J (vitest)
 npm run build    # gera dist/ (ficheiros estáticos)
 ```
 

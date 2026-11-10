@@ -7,6 +7,9 @@ import { useLoja } from './estado/loja';
 import { irPara, type IdSeccao } from './navegacao';
 import { Bloqueio } from './paginas/Bloqueio';
 import Alertas from './paginas/Alertas';
+import Assistente from './paginas/Assistente';
+import Comparador from './paginas/Comparador';
+import Refeicao from './paginas/Refeicao';
 import Alocacao from './paginas/Alocacao';
 import Analise from './paginas/Analise';
 import Contas from './paginas/Contas';
@@ -30,14 +33,17 @@ interface Seccao {
 
 export const SECCOES: Seccao[] = [
   { id: 'painel', nome: 'Painel', icone: 'painel', grupo: 'Visão geral', Pagina: Painel },
+  { id: 'assistente', nome: 'Assistente', icone: 'info', grupo: 'Visão geral', Pagina: Assistente },
   { id: 'receitas', nome: 'Receitas', icone: 'receitas', grupo: 'Fluxos', Pagina: Receitas },
   { id: 'despesas', nome: 'Despesas e orçamento', curto: 'Despesas', icone: 'despesas', grupo: 'Fluxos', Pagina: Despesas },
+  { id: 'refeicao', nome: 'Cartão-refeição', curto: 'Refeição', icone: 'refeicao', grupo: 'Fluxos', Pagina: Refeicao },
   { id: 'contas', nome: 'Contas e património', curto: 'Contas', icone: 'contas', grupo: 'Património', Pagina: Contas },
   { id: 'fundo', nome: 'Fundo de emergência', curto: 'Emergência', icone: 'fundo', grupo: 'Património', Pagina: Fundo },
   { id: 'objetivos', nome: 'Objetivos de poupança', curto: 'Objetivos', icone: 'objetivos', grupo: 'Património', Pagina: Objetivos },
   { id: 'investimentos', nome: 'Investimentos', curto: 'Investir', icone: 'investimentos', grupo: 'Património', Pagina: Investimentos },
   { id: 'alocacao', nome: 'Simulador de alocação', curto: 'Alocação', icone: 'alocacao', grupo: 'Planeamento', Pagina: Alocacao },
   { id: 'analise', nome: 'Análise e projeções', curto: 'Análise', icone: 'analise', grupo: 'Planeamento', Pagina: Analise },
+  { id: 'comparador', nome: 'Comparador bancário', curto: 'Bancos', icone: 'contas', grupo: 'Planeamento', Pagina: Comparador },
   { id: 'relatorios', nome: 'Relatórios', icone: 'relatorios', grupo: 'Planeamento', Pagina: Relatorios },
   { id: 'alertas', nome: 'Alertas', icone: 'alertas', grupo: 'Conta', Pagina: Alertas },
   { id: 'definicoes', nome: 'Definições', icone: 'definicoes', grupo: 'Conta', Pagina: Definicoes },

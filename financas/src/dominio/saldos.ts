@@ -1,4 +1,5 @@
 import { fimMes } from './datas';
+import { alocacoesConta, fundoNaConta } from './alocacoes';
 import { fluxoOperacao, resumoCarteira } from './investimentos';
 import type { Conta, Estado, Movimento, TipoConta } from './tipos';
 
@@ -41,11 +42,14 @@ export function saldoConta(estado: Estado, conta: Conta, ate = '9999-12-31'): nu
 }
 
 export interface Composicao {
-  /** Contas à ordem fora do fundo de emergência: dinheiro para o dia a dia. */
+  /** Saldo das contas à ordem que não está alocado ao fundo de emergência. */
   disponivel: number;
-  /** Contas poupança, depósitos e outras reservas fora do fundo de emergência. */
+  /** Contas poupança, depósitos e outras reservas, sem a parte alocada ao fundo de emergência. */
   poupancas: number;
+  /** Soma das alocações ao fundo de emergência (limitada ao saldo de cada conta). */
   fundoEmergencia: number;
+  /** Alocações (fundo, objetivos, despesas futuras, etc.) que excedem o saldo das contas. */
+  excessoAlocacoes: number;
   /** Benefício em cartão-refeição (não é dinheiro convertível). */
   refeicao: number;
   /** Liquidez parada nas carteiras de investimento. */
@@ -65,6 +69,7 @@ export function composicao(estado: Estado, ate = '9999-12-31'): Composicao {
     disponivel: 0,
     poupancas: 0,
     fundoEmergencia: 0,
+    excessoAlocacoes: 0,
     refeicao: 0,
     liquidezCarteiras: 0,
     carteira: 0,
@@ -77,11 +82,18 @@ export function composicao(estado: Estado, ate = '9999-12-31'): Composicao {
     const s = saldoConta(estado, conta, ate);
     c.porConta.push({ conta, saldo: s });
     if (['ordem', 'poupanca', 'prazo'].includes(conta.tipo)) c.bancario += s;
-    if (conta.fundoEmergencia) c.fundoEmergencia += s;
-    else if (conta.tipo === 'ordem') c.disponivel += s;
-    else if (conta.tipo === 'refeicao') c.refeicao += s;
-    else if (conta.tipo === 'investimento') c.liquidezCarteiras += s;
-    else c.poupancas += s;
+    if (conta.tipo === 'refeicao') {
+      c.refeicao += s;
+      continue;
+    }
+    // A parte alocada ao fundo de emergência é contada à parte; o resto conta pelo tipo da conta.
+    const fe = fundoNaConta(estado, conta.id, s);
+    c.fundoEmergencia += fe;
+    c.excessoAlocacoes += alocacoesConta(estado, conta.id, s).excesso;
+    const resto = s - fe;
+    if (conta.tipo === 'ordem') c.disponivel += resto;
+    else if (conta.tipo === 'investimento') c.liquidezCarteiras += resto;
+    else c.poupancas += resto;
   }
   const carteira = resumoCarteira(estado, ate);
   c.carteira = carteira.valor;

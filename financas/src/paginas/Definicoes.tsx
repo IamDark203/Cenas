@@ -60,8 +60,16 @@ export default function Definicoes() {
           <CampoCaixa rotulo="Incluir o cartão-refeição no património" valor={p.incluirRefeicaoPatrimonio} mudar={(incluirRefeicaoPatrimonio) => mudarPerfil({ incluirRefeicaoPatrimonio })} dica="Nunca conta como dinheiro disponível." />
         </Cartao>
 
+        <Cartao titulo="Plano mensal" subtitulo="Valores mensais que reservas além das despesas e dos objetivos.">
+          <div className="linha-campos">
+            <CampoNumero rotulo="Investimento programado" valor={estado.planoMensal.investimento} mudar={(v) => atualizar((e) => ({ ...e, planoMensal: { ...e.planoMensal, investimento: Math.max(0, v ?? 0) } }))} />
+            <CampoNumero rotulo="Outras poupanças planeadas" valor={estado.planoMensal.outrasPoupancas} mudar={(v) => atualizar((e) => ({ ...e, planoMensal: { ...e.planoMensal, outrasPoupancas: Math.max(0, v ?? 0) } }))} />
+          </div>
+          <p className="mais-suave pequeno">Os reforços do fundo e dos objetivos definem-se nas respetivas secções.</p>
+        </Cartao>
+
         <Cartao titulo="Pressupostos de cálculo">
-          <CampoNumero rotulo="Retenção na fonte sobre juros" sufixo="%" min={0} max={100} valor={estado.pressupostos.retencaoJuros} mudar={(v) => atualizar((e) => ({ ...e, pressupostos: { ...e.pressupostos, retencaoJuros: v ?? 0 } }))} dica="Usada para calcular a TANL quando não a indicas na conta. Confirma a taxa em vigor." />
+          <CampoNumero rotulo="Imposto sobre juros" sufixo="%" min={0} max={100} valor={estado.pressupostos.retencaoJuros} mudar={(v) => atualizar((e) => ({ ...e, pressupostos: { ...e.pressupostos, retencaoJuros: v ?? 0 } }))} dica="Usado na TANL calculada e nas simulações bancárias. Por omissão 28 % (taxa liberatória para residentes). Se optares pelo englobamento ou tiveres outro enquadramento, indica a tua taxa." />
           <p className="mais-suave pequeno">Os pressupostos dos simuladores e projeções editam-se em cada simulador.</p>
         </Cartao>
 
@@ -166,9 +174,24 @@ function Categorias({ tipo }: { tipo: 'receita' | 'despesa' }) {
   };
   return (
     <Cartao titulo={tipo === 'despesa' ? 'Categorias de despesa' : 'Categorias de receita'}>
+      {tipo === 'despesa' && <p className="mais-suave pequeno">Essencial: entra no fundo de emergência. Lazer: entra no orçamento de lazer.</p>}
       {lista.map((c) => (
         <div key={c.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'end' }}>
-          <CampoTexto rotulo="" valor={c.nome} mudar={(n) => renomear(c, n)} max={60} />
+          <div className="formulario" style={{ gap: 4 }}>
+            <CampoTexto rotulo="" valor={c.nome} mudar={(n) => renomear(c, n)} max={60} />
+            {tipo === 'despesa' && (
+              <div className="acoes" style={{ gap: 14 }}>
+                <label className="campo-caixa pequeno">
+                  <input type="checkbox" checked={!!c.essencial} onChange={(e) => atualizar((x) => ({ ...x, categorias: x.categorias.map((y) => (y.id === c.id ? { ...y, essencial: e.target.checked, lazer: e.target.checked ? false : y.lazer } : y)) }))} />
+                  Essencial
+                </label>
+                <label className="campo-caixa pequeno">
+                  <input type="checkbox" checked={!!c.lazer} onChange={(e) => atualizar((x) => ({ ...x, categorias: x.categorias.map((y) => (y.id === c.id ? { ...y, lazer: e.target.checked, essencial: e.target.checked ? false : y.essencial } : y)) }))} />
+                  Lazer
+                </label>
+              </div>
+            )}
+          </div>
           <button type="button" className="fantasma icone perigo" aria-label={`Apagar ${c.nome}`} onClick={() => apagar(c)} disabled={lista.length <= 1}>
             <Icone nome="lixo" />
           </button>
