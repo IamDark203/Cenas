@@ -1,0 +1,1173 @@
+{
+  "versao": 1,
+  "geradoEm": "2026-11-10",
+  "nota": "Dados recolhidos de documentação oficial das instituições (FIN). Campos a null = Não disponível na fonte consultada. Taxas em percentagem anual.",
+  "requisitos": {
+    "conta-ordem-banco": "Ter (ou abrir) uma conta à ordem na mesma instituição",
+    "domiciliacao-ordenado": "Domiciliar ordenado, pensão ou rendimentos recorrentes",
+    "debitos-diretos": "Ter vários débitos diretos ativos na conta à ordem",
+    "maior-idade": "Ser maior de idade",
+    "segmento-cgd-azul": "Ter o serviço Caixa Azul ou Caixa Private (CGD)",
+    "conta-gestao-ca": "Ter a DO Conta Gestão do Crédito Agrícola"
+  },
+  "instituicoes": [
+    {
+      "id": "banco-ctt",
+      "nome": "Banco CTT",
+      "entidade": "Banco CTT, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.bancoctt.pt",
+      "cobertura": "verificada",
+      "motivo": null
+    },
+    {
+      "id": "cgd",
+      "nome": "Caixa Geral de Depósitos",
+      "entidade": "Caixa Geral de Depósitos, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.cgd.pt",
+      "cobertura": "verificada",
+      "motivo": null
+    },
+    {
+      "id": "santander",
+      "nome": "Santander",
+      "entidade": "Banco Santander Totta, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.santander.pt",
+      "cobertura": "verificada",
+      "motivo": null
+    },
+    {
+      "id": "novo-banco",
+      "nome": "Novo Banco",
+      "entidade": "Novo Banco, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.novobanco.pt",
+      "cobertura": "verificada",
+      "motivo": null
+    },
+    {
+      "id": "bpi",
+      "nome": "Banco BPI",
+      "entidade": "Banco BPI, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.bancobpi.pt",
+      "cobertura": "parcial",
+      "motivo": "Só um produto recolhido (página FIN). Comissões não confirmadas."
+    },
+    {
+      "id": "credito-agricola",
+      "nome": "Crédito Agrícola",
+      "entidade": "Caixa Central de Crédito Agrícola Mútuo, C.R.L.",
+      "pais": "Portugal",
+      "site": "https://www.creditoagricola.pt",
+      "cobertura": "parcial",
+      "motivo": "Só um produto de poupança para particulares recolhido."
+    },
+    {
+      "id": "openbank",
+      "nome": "Openbank",
+      "entidade": "Open Bank, S.A.",
+      "pais": "Espanha",
+      "site": "https://www.openbank.pt",
+      "cobertura": "parcial",
+      "motivo": "Taxa após o período de boas-vindas não publicada no documento consultado."
+    },
+    {
+      "id": "millennium",
+      "nome": "Millennium BCP",
+      "entidade": "Banco Comercial Português, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.millenniumbcp.pt",
+      "cobertura": "sem-dados",
+      "motivo": "As FIN estão num subdomínio (investimentos.millenniumbcp.pt) ainda não incluído na recolha automática."
+    },
+    {
+      "id": "bankinter",
+      "nome": "Bankinter",
+      "entidade": "Bankinter, S.A. – Sucursal em Portugal",
+      "pais": "Espanha",
+      "site": "https://www.bankinter.pt",
+      "cobertura": "sem-dados",
+      "motivo": "O site recusou o pedido automático (HTTP 403)."
+    },
+    {
+      "id": "activobank",
+      "nome": "ActivoBank",
+      "entidade": "Banco ActivoBank, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.activobank.pt",
+      "cobertura": "sem-dados",
+      "motivo": "Os documentos não responderam ao pedido automático."
+    },
+    {
+      "id": "montepio",
+      "nome": "Banco Montepio",
+      "entidade": "Caixa Económica Montepio Geral, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.bancomontepio.pt",
+      "cobertura": "sem-dados",
+      "motivo": "Folheto de taxas obtido mas ainda não validado produto a produto."
+    },
+    {
+      "id": "abanca",
+      "nome": "ABANCA",
+      "entidade": "ABANCA Corporación Bancaria, S.A. – Sucursal em Portugal",
+      "pais": "Espanha",
+      "site": "https://www.abanca.pt",
+      "cobertura": "sem-dados",
+      "motivo": "O site recusou o pedido automático (HTTP 403)."
+    },
+    {
+      "id": "big",
+      "nome": "Banco BiG",
+      "entidade": "Banco de Investimento Global, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.bancobig.pt",
+      "cobertura": "sem-dados",
+      "motivo": "Documentos públicos não disponíveis no endereço consultado."
+    },
+    {
+      "id": "invest",
+      "nome": "Banco Invest",
+      "entidade": "Banco Invest, S.A.",
+      "pais": "Portugal",
+      "site": "https://www.bancoinvest.pt",
+      "cobertura": "sem-dados",
+      "motivo": "A única FIN encontrada é de 2021 e foi excluída por estar desatualizada."
+    },
+    {
+      "id": "bbva",
+      "nome": "BBVA",
+      "entidade": "Banco Bilbao Vizcaya Argentaria, S.A. – Sucursal em Portugal",
+      "pais": "Espanha",
+      "site": "https://www.bbva.pt",
+      "cobertura": "sem-dados",
+      "motivo": "O site recusou o pedido automático (HTTP 403)."
+    }
+  ],
+  "produtos": [
+    {
+      "id": "ctt-conta-poupanca-livre",
+      "instituicaoId": "banco-ctt",
+      "nome": "Conta Poupança Livre",
+      "tipo": "conta-poupanca",
+      "modalidade": "Depósito à ordem",
+      "descricao": "Conta poupança associada a uma conta à ordem do Banco CTT, sem prazo.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares maiores de idade, residentes e não residentes.",
+      "requisitosAcesso": [
+        "conta-ordem-banco",
+        "maior-idade"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa com condições de acesso",
+          "requisitos": [
+            "domiciliacao-ordenado",
+            "debitos-diretos"
+          ],
+          "logica": "qualquer",
+          "descricao": "Domiciliação de rendimentos ≥ 800 €/mês nos três meses de referência OU cobrança de 3 ou mais débitos diretos mensais de entidades distintas na conta à ordem. Verificado trimestralmente; na abertura aplica-se esta taxa. Só para uma Conta Poupança Livre por conta à ordem.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 3
+            }
+          ],
+          "tanl": 2.16
+        },
+        {
+          "nome": "Taxa base",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "Aplica-se quando nenhuma das condições é cumprida.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 0.5
+            }
+          ],
+          "tanl": 0.36
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Não disponível",
+      "promocao": null,
+      "tael": null,
+      "montantes": {
+        "abertura": null,
+        "permanencia": null,
+        "maximo": null,
+        "maximoRemunerado": 5000
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": null,
+        "maximo": null,
+        "descricao": "Transferências a crédito intrabancárias; ordens permanentes mensais ou trimestrais a partir da conta à ordem."
+      },
+      "prazo": null,
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Saldo apurado no final de cada dia; só é remunerado o saldo até 5.000 €. Convenção atual/360, arredondamento à 4.ª casa decimal.",
+        "periodicidade": "trimestral",
+        "datasPagamento": {
+          "meses": [
+            1,
+            4,
+            7,
+            10
+          ],
+          "dia": 1
+        },
+        "regraData": "1.º dia de janeiro, abril, julho e outubro, ou no encerramento da conta.",
+        "capitaliza": false,
+        "destino": "Conta à ordem associada"
+      },
+      "mobilizacao": {
+        "tipo": "livre",
+        "perdaJuros": "nenhuma",
+        "preAvisoDias": 0,
+        "descricao": "Depósito à ordem, movimentado por transferência intrabancária para a conta à ordem associada."
+      },
+      "custos": {
+        "abertura": 0,
+        "manutencaoMensal": 0,
+        "encerramento": 0,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Sem comissões, exceto as aplicáveis às transferências intrabancárias (preçário). Custo da conta à ordem obrigatória: não disponível nesta fonte."
+      },
+      "fiscal": "IRS por retenção na fonte à taxa liberatória (28 % à data da FIN; 19,6 % nos Açores e na Madeira).",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Banco CTT, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN Conta Poupança Livre (ref. BCTTGCC02531)",
+          "url": "https://www.bancoctt.pt/contentAsset/raw-data/689b7b60-9d20-4605-a881-ba4aa27dd801/ficheiro/export/FIN%20Conta%20Poupan%C3%A7a%20Livre.pdf",
+          "vigorDesde": "2024-04-01"
+        }
+      ],
+      "verificacao": {
+        "estado": "verificada",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "c5e14c7e1a8c9f32c4db33a1c4583a08ad6bcd4e9d496fc422a5d7baae4d63a6",
+        "notas": "Taxas em vigor desde 1 de abril de 2024 segundo a FIN."
+      },
+      "historico": []
+    },
+    {
+      "id": "cgd-caixapoupanca",
+      "instituicaoId": "cgd",
+      "nome": "CaixaPoupança",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 181 dias, renovável automaticamente",
+      "descricao": "Depósito a prazo com reforços a qualquer momento e taxa por escalão de saldo.",
+      "estado": "comercializado",
+      "publicoAlvo": "Pessoas singulares, ENI (uso pessoal) e condomínios.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa por escalão",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "Taxa aplicável a cada entrega em função do escalão do saldo global da conta.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": 249.99,
+              "tanb": 0
+            },
+            {
+              "de": 250,
+              "ate": null,
+              "tanb": 0.1
+            }
+          ],
+          "tanl": 0.072
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Escalões que a Caixa pode alterar com 30 dias de aviso (aplicam-se a entregas posteriores).",
+      "promocao": null,
+      "tael": 0.072,
+      "montantes": {
+        "abertura": 10,
+        "permanencia": 10,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": 10,
+        "maximo": null,
+        "descricao": "Entregas a qualquer momento, mínimo 10 €."
+      },
+      "prazo": {
+        "dias": 181,
+        "renovacao": "automatica",
+        "tanbRenovacao": null
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Cada entrega tratada autonomamente; Act/360; arredondamento ao cêntimo; sem pagamento se o juro ilíquido for inferior a 0,04 €.",
+        "periodicidade": "semestral",
+        "datasPagamento": null,
+        "regraData": "Semestralmente (a FIN não fixa o dia).",
+        "capitaliza": "opcional",
+        "destino": "Conta à ordem indicada ou capitalização na própria conta (à escolha)"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "periodo-corrente",
+        "preAvisoDias": 0,
+        "descricao": "Mobilização total ou parcial a qualquer momento; não são pagos juros sobre o capital mobilizado (mobilizam-se primeiro as entregas mais recentes)."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas na extração da FIN."
+      },
+      "fiscal": "IRS à taxa liberatória de 28 % (opção de englobamento); redução de 30 % nos Açores e na Madeira.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Caixa Geral de Depósitos, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN CaixaPoupança (ref. 402001_EUR_20260904_001)",
+          "url": "https://www.cgd.pt/_layouts/15/CaixatecCGDLayoutsV2/fin.aspx?pff=402&pfc=001&moe=EUR",
+          "vigorDesde": "2026-09-04"
+        }
+      ],
+      "verificacao": {
+        "estado": "parcial",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "62cf68ba39d3bfb5ee81a4457c01b503658d2646c927dd9d8aeb751fc1e87831",
+        "notas": "Taxas, prazos e regras de juros verificados; comissões por confirmar."
+      },
+      "historico": []
+    },
+    {
+      "id": "cgd-poupanca-dinamica",
+      "instituicaoId": "cgd",
+      "nome": "Conta Poupança Dinâmica",
+      "tipo": "conta-poupanca",
+      "modalidade": "Depósito a prazo de 30 dias, renovável automaticamente (Serviço GAT)",
+      "descricao": "Poupança associada à gestão automática de tesouraria (GAT), com mobilização sem penalização.",
+      "estado": "comercializado",
+      "publicoAlvo": "Pessoas singulares com os serviços Caixa Azul ou Caixa Private.",
+      "requisitosAcesso": [
+        "conta-ordem-banco",
+        "segmento-cgd-azul"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa por escalão",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "Taxa do escalão em que o saldo se encontra no início de cada dia.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": 4999.99,
+              "tanb": 0
+            },
+            {
+              "de": 5000,
+              "ate": null,
+              "tanb": 0.1
+            }
+          ],
+          "tanl": 0.072
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Não disponível",
+      "promocao": null,
+      "tael": 0.072,
+      "montantes": {
+        "abertura": null,
+        "permanencia": null,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": 500,
+        "maximo": null,
+        "descricao": "Em final de dia, por transferência da conta à ordem do Serviço GAT, em múltiplos de 500 €."
+      },
+      "prazo": {
+        "dias": 30,
+        "renovacao": "automatica",
+        "tanbRenovacao": null
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Diariamente sobre o saldo de início de cada dia; Act/360; arredondamento ao cêntimo.",
+        "periodicidade": "mensal",
+        "datasPagamento": {
+          "meses": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "dia": 1
+        },
+        "regraData": "No primeiro dia de cada mês, na conta à ordem do Serviço GAT.",
+        "capitaliza": false,
+        "destino": "Conta à ordem associada ao Serviço GAT"
+      },
+      "mobilizacao": {
+        "tipo": "livre",
+        "perdaJuros": "nenhuma",
+        "preAvisoDias": 0,
+        "descricao": "A qualquer momento, em final de dia, total ou parcial, sem penalização; mínimo 500 € e em múltiplos de 500 €."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Custos dos serviços Caixa Azul/Private não disponíveis nesta fonte."
+      },
+      "fiscal": "IRS à taxa liberatória de 28 % (opção de englobamento); redução de 30 % nos Açores e na Madeira.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Caixa Geral de Depósitos, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN Conta Poupança Dinâmica (ref. 402034_EUR_20260904_001)",
+          "url": "https://www.cgd.pt/_layouts/15/CaixatecCGDLayoutsV2/fin.aspx?pff=402&pfc=034&moe=EUR",
+          "vigorDesde": "2026-09-04"
+        }
+      ],
+      "verificacao": {
+        "estado": "parcial",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "3751598c95f1c9532e4502e891ed3817d0791417b09a7805f0a64c3fab14f109",
+        "notas": "Taxas e regras verificadas; custos dos serviços exigidos não disponíveis."
+      },
+      "historico": []
+    },
+    {
+      "id": "openbank-poupanca-boas-vindas",
+      "instituicaoId": "openbank",
+      "nome": "Conta Poupança Boas-vindas Open",
+      "tipo": "conta-poupanca",
+      "modalidade": "Conta poupança de prazo indeterminado",
+      "descricao": "Taxa promocional nos primeiros 6 meses; depois passa a Conta Poupança Ordenado Open.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes individuais com Conta à Ordem Open.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Promocional nos primeiros 6 meses. Depois aplicam-se as taxas da Conta Poupança Ordenado Open em vigor, com critério de rendimentos recorrentes ≥ 700 €/mês: não indicadas nesta fonte.",
+      "promocao": {
+        "meses": 6,
+        "inicio": null,
+        "fim": null,
+        "escaloes": [
+          {
+            "de": 0,
+            "ate": 500000,
+            "tanb": 2.5
+          }
+        ],
+        "descricao": "TANB de 2,50 % durante os primeiros 6 meses, desde o primeiro cêntimo até 500.000 €.",
+        "requisitos": []
+      },
+      "tael": null,
+      "montantes": {
+        "abertura": null,
+        "permanencia": null,
+        "maximo": null,
+        "maximoRemunerado": 500000
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": null,
+        "maximo": null,
+        "descricao": "Por transferência."
+      },
+      "prazo": null,
+      "juros": {
+        "baseDias": null,
+        "calculo": "Não disponível no documento consultado.",
+        "periodicidade": "mensal",
+        "datasPagamento": null,
+        "regraData": "Liquidação mensal (a data concreta não é indicada).",
+        "capitaliza": true,
+        "destino": "Própria conta poupança"
+      },
+      "mobilizacao": {
+        "tipo": "livre",
+        "perdaJuros": "nenhuma",
+        "preAvisoDias": 0,
+        "descricao": "Disponibilidade total por transferência para qualquer conta."
+      },
+      "custos": {
+        "abertura": 0,
+        "manutencaoMensal": 0,
+        "encerramento": 0,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Sem comissões de gestão, manutenção ou cancelamento da conta poupança. Custo da Conta à Ordem Open: não disponível nesta fonte."
+      },
+      "fiscal": "Não disponível no documento consultado.",
+      "garantia": {
+        "sistema": "Fondo de Garantía de Depósitos de Entidades de Crédito (Espanha)",
+        "limite": 100000,
+        "entidade": "Open Bank, S.A.",
+        "pais": "Espanha",
+        "notas": "Instituição espanhola supervisionada pelo Banco de Espanha: a garantia é a do sistema espanhol."
+      },
+      "fontes": [
+        {
+          "tipo": "Informação pré-contratual",
+          "titulo": "Documento normalizado de informação pré-contratual (em vigor desde 29/09/2026)",
+          "url": "https://www.openbank.pt/assets/static/pt/pdf/Products/Precontratual_ContaPoupancaBoasVindas_PT.pdf",
+          "vigorDesde": "2026-09-29"
+        }
+      ],
+      "verificacao": {
+        "estado": "parcial",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "bb7864e0dcc32857f569b57c85fd9970db40aef2c00952e04fa841eabcabc4e3",
+        "notas": "Taxa após o 6.º mês e base de cálculo não disponíveis."
+      },
+      "historico": []
+    },
+    {
+      "id": "santander-conta-poupanca-objetivo",
+      "instituicaoId": "santander",
+      "nome": "Conta Poupança Objetivo",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 3 meses, renovável automaticamente",
+      "descricao": "Pequena poupança com reforços pontuais, até 2.500 €.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares titulares de conta de depósito à ordem no Santander.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa fixa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 0.25
+            }
+          ],
+          "tanl": 0.18
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Na renovação aplicam-se as condições do preçário em vigor.",
+      "promocao": null,
+      "tael": 0.18,
+      "montantes": {
+        "abertura": 1,
+        "permanencia": null,
+        "maximo": 2500,
+        "maximoRemunerado": 2500
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": 1,
+        "maximo": 2500,
+        "descricao": "Reforços pontuais; o total não pode ultrapassar 2.500 €."
+      },
+      "prazo": {
+        "meses": 3,
+        "renovacao": "automatica",
+        "tanbRenovacao": null
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Atual/360, sem arredondamento, com base no saldo diário.",
+        "periodicidade": "vencimento",
+        "datasPagamento": null,
+        "regraData": "Dia útil seguinte à data de vencimento.",
+        "capitaliza": true,
+        "destino": "Capitalização no depósito"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "periodo-corrente",
+        "preAvisoDias": 0,
+        "descricao": "Mobilização total ou parcial a qualquer momento, sem pagamento de juros sobre o saldo mobilizado no período em curso."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas na extração da FIN."
+      },
+      "fiscal": "IRS por retenção na fonte (28 %), com opção de englobamento.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Banco Santander Totta, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN Conta Poupança Objetivo",
+          "url": "https://www.santander.pt/pdfs/particulares/poupar-e-investir/depositos-a-prazo/dps2/FIN_Conta_Poupanca_Objetivo.pdf",
+          "vigorDesde": null
+        }
+      ],
+      "verificacao": {
+        "estado": "parcial",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "ab38132e43c005a3facbf9b38ee52c0577a32f18c74480050b13d9621e9fba9b",
+        "notas": "A página do produto indicava valores diferentes em pesquisa; foi usada a FIN. Data de vigor não indicada."
+      },
+      "historico": []
+    },
+    {
+      "id": "santander-deposito-poupanca-3m",
+      "instituicaoId": "santander",
+      "nome": "Depósito Poupança 3 meses",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 3 meses, renovável automaticamente",
+      "descricao": "Depósito a prazo para montantes a partir de 15.000 €.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares maiores de idade.",
+      "requisitosAcesso": [
+        "conta-ordem-banco",
+        "maior-idade"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa fixa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 1.05
+            }
+          ],
+          "tanl": 0.756
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Fixa no prazo; na renovação aplicam-se as condições do preçário em vigor (não indicadas).",
+      "promocao": null,
+      "tael": null,
+      "montantes": {
+        "abertura": 15000,
+        "permanencia": null,
+        "maximo": 300000,
+        "maximoRemunerado": 300000
+      },
+      "reforcos": {
+        "permite": false,
+        "minimo": null,
+        "maximo": null,
+        "descricao": "Não admite entregas adicionais."
+      },
+      "prazo": {
+        "meses": 3,
+        "renovacao": "automatica",
+        "tanbRenovacao": null
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Atual/360, sem arredondamento, com base no saldo diário.",
+        "periodicidade": "vencimento",
+        "datasPagamento": null,
+        "regraData": "Na data de vencimento.",
+        "capitaliza": false,
+        "destino": "Conta à ordem associada"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "periodo-corrente",
+        "preAvisoDias": 0,
+        "descricao": "Mobilização antecipada total ou parcial a qualquer momento, sem juros sobre o saldo mobilizado no período em curso."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas na extração da FIN."
+      },
+      "fiscal": "IRS por retenção na fonte (28 %), com opção de englobamento.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Banco Santander Totta, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN Depósito Poupança 3 meses (BST-IE-50008895, 24/02/2026)",
+          "url": "https://www.santander.pt/pdfs/particulares/poupar-e-investir/depositos-a-prazo/dps2/BST-IE-50008895.pdf",
+          "vigorDesde": "2026-02-24"
+        }
+      ],
+      "verificacao": {
+        "estado": "verificada",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "7fd407f76fdd7712e269f388ad2f3f94b0b93530e9a38653fc2158f4241990c9",
+        "notas": "Taxa de renovação não indicada."
+      },
+      "historico": []
+    },
+    {
+      "id": "novobanco-dp-3m-300",
+      "instituicaoId": "novo-banco",
+      "nome": "DP 3 Meses 3,00%",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 3 meses, renovável uma vez",
+      "descricao": "Taxa fixa de 3,00 % no primeiro prazo; renovação única a 0,15 %.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares e ENI com conta à ordem no Novo Banco.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa fixa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 3
+            }
+          ],
+          "tanl": 2.16
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Fixa até ao final do prazo.",
+      "promocao": null,
+      "tael": null,
+      "montantes": {
+        "abertura": 150000,
+        "permanencia": 150000,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": false,
+        "minimo": null,
+        "maximo": null,
+        "descricao": "Não são permitidos reforços."
+      },
+      "prazo": {
+        "meses": 3,
+        "renovacao": "unica",
+        "tanbRenovacao": 0.15
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Atual/360, sem arredondamento, com base no saldo diário.",
+        "periodicidade": "vencimento",
+        "datasPagamento": null,
+        "regraData": "No vencimento.",
+        "capitaliza": false,
+        "destino": "Conta à ordem"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "periodo-corrente",
+        "preAvisoDias": 0,
+        "descricao": "Mobilizações totais e parciais a qualquer momento, com perda total dos juros vincendos não pagos sobre o montante mobilizado."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas na extração da FIN."
+      },
+      "fiscal": "IRS/IRC às taxas em vigor no vencimento.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Novo Banco, S.A.",
+        "pais": "Portugal",
+        "notas": "Montante mínimo (150.000 €) acima do limite garantido por depositante."
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN DP 3 Meses 3,00% (GBES3779)",
+          "url": "https://www.novobanco.pt/content/dam/novobancopublicsites/docs/pdfs/depositos-e-poupancas/fins/GBES3779_FIN%20DP%203%20Meses%203,00_NB.pdf.coredownload.inline.pdf",
+          "vigorDesde": null
+        }
+      ],
+      "verificacao": {
+        "estado": "verificada",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "1fe723950968c93bc38c1517903da160f9f4d465603b6380616683be56718404",
+        "notas": "FIN indica condições em vigor na data de consulta."
+      },
+      "historico": []
+    },
+    {
+      "id": "novobanco-dp-6m-275",
+      "instituicaoId": "novo-banco",
+      "nome": "DP 6 Meses 2,75%",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 6 meses, renovável uma vez",
+      "descricao": "Taxa fixa de 2,75 % no primeiro prazo; renovação única a 0,15 %.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares e ENI com conta à ordem no Novo Banco.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa fixa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 2.75
+            }
+          ],
+          "tanl": 1.98
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Fixa até ao final do prazo.",
+      "promocao": null,
+      "tael": null,
+      "montantes": {
+        "abertura": 50000,
+        "permanencia": 50000,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": false,
+        "minimo": null,
+        "maximo": null,
+        "descricao": "Não são permitidos reforços."
+      },
+      "prazo": {
+        "meses": 6,
+        "renovacao": "unica",
+        "tanbRenovacao": 0.15
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Atual/360, sem arredondamento, com base no saldo diário.",
+        "periodicidade": "vencimento",
+        "datasPagamento": null,
+        "regraData": "No vencimento.",
+        "capitaliza": false,
+        "destino": "Conta à ordem"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "periodo-corrente",
+        "preAvisoDias": 0,
+        "descricao": "Mobilizações totais e parciais a qualquer momento, com perda total dos juros vincendos não pagos sobre o montante mobilizado."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas na extração da FIN."
+      },
+      "fiscal": "IRS/IRC às taxas em vigor no vencimento.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Novo Banco, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN DP 6 Meses 2,75% (GBES3777)",
+          "url": "https://www.novobanco.pt/content/dam/novobancopublicsites/docs/pdfs/depositos-e-poupancas/fins/GBES3777_FIN%20DP%206%20Meses%202,75_NB.pdf.coredownload.inline.pdf",
+          "vigorDesde": null
+        }
+      ],
+      "verificacao": {
+        "estado": "verificada",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "cb3f5192c823ad1fe7c74f5b8ec439d70c58c8b76dc9cfb2de3861d379f80387",
+        "notas": "FIN indica condições em vigor na data de consulta."
+      },
+      "historico": []
+    },
+    {
+      "id": "ca-poupanca-gestao",
+      "instituicaoId": "credito-agricola",
+      "nome": "Poupança Gestão",
+      "tipo": "conta-poupanca",
+      "modalidade": "Depósito de prazo indeterminado",
+      "descricao": "Poupança alimentada por transferências automáticas mensais da DO Conta Gestão.",
+      "estado": "comercializado",
+      "publicoAlvo": "Pessoas singulares com 18 ou mais anos, associados ou não.",
+      "requisitosAcesso": [
+        "maior-idade",
+        "conta-gestao-ca"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "Revista por períodos de 6 ou 12 meses.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 1
+            }
+          ],
+          "tanl": 0.72
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Revista por períodos de 6 ou 12 meses.",
+      "promocao": null,
+      "tael": 0.72,
+      "montantes": {
+        "abertura": 0,
+        "permanencia": 0,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": 100,
+        "maximo": null,
+        "descricao": "Só transferências automáticas mensais da DO Conta Gestão, em múltiplos de 100 €; não há reforços pontuais."
+      },
+      "prazo": null,
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Convenção atual/360; arredondamento ao cêntimo.",
+        "periodicidade": "mensal",
+        "datasPagamento": null,
+        "regraData": "Mensalmente, por incorporação no capital (a FIN não fixa o dia).",
+        "capitaliza": true,
+        "destino": "Capitalização mensal obrigatória"
+      },
+      "mobilizacao": {
+        "tipo": "penalizacao",
+        "perdaJuros": "ate-30-dias",
+        "preAvisoDias": 0,
+        "descricao": "Total ou parcial a qualquer momento, com perda dos juros vencidos sobre o capital mobilizado no período em curso, limitado a 30 dias."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": 0,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": 3.5,
+        "notas": "Comissão de gestão mensal da DO Conta Gestão: 1,50 € para associados e 3,50 € para não associados, a que acresce Imposto do Selo."
+      },
+      "fiscal": "IRS à taxa de 28 % (19,6 % nos Açores e na Madeira).",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Caixa Central de Crédito Agrícola Mútuo, C.R.L.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "FIN Poupança Gestão",
+          "url": "https://www.creditoagricola.pt/-/media/100aff80f0c5451e8d51b09ad1650556.pdf",
+          "vigorDesde": null
+        }
+      ],
+      "verificacao": {
+        "estado": "verificada",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": "6dc1be99c52447838d1704be3119feefb0ee233508175d9ae878dc53a41ba818",
+        "notas": "Data de vigor não indicada na FIN."
+      },
+      "historico": []
+    },
+    {
+      "id": "bpi-poupanca-objectivo",
+      "instituicaoId": "bpi",
+      "nome": "BPI Poupança Objectivo",
+      "tipo": "deposito-prazo",
+      "modalidade": "Depósito a prazo de 12 meses, renovável automaticamente",
+      "descricao": "Depósito a 12 meses com reforços e mobilização sem penalização.",
+      "estado": "comercializado",
+      "publicoAlvo": "Clientes particulares titulares de conta à ordem no Banco BPI.",
+      "requisitosAcesso": [
+        "conta-ordem-banco"
+      ],
+      "novosClientes": false,
+      "niveis": [
+        {
+          "nome": "Taxa fixa",
+          "requisitos": [],
+          "logica": "todas",
+          "descricao": "Reforços remunerados à taxa do preçário em vigor na data do reforço.",
+          "escaloes": [
+            {
+              "de": 0,
+              "ate": null,
+              "tanb": 0.25
+            }
+          ],
+          "tanl": 0.18
+        }
+      ],
+      "modoEscalao": "saldo-total",
+      "regimeTaxa": "Na renovação aplica-se a taxa de referência do produto (não indicada).",
+      "promocao": null,
+      "tael": null,
+      "montantes": {
+        "abertura": 1,
+        "permanencia": 1,
+        "maximo": null,
+        "maximoRemunerado": null
+      },
+      "reforcos": {
+        "permite": true,
+        "minimo": 1,
+        "maximo": null,
+        "descricao": "A qualquer momento; taxa do preçário em vigor na data do reforço."
+      },
+      "prazo": {
+        "meses": 12,
+        "renovacao": "automatica",
+        "tanbRenovacao": null
+      },
+      "juros": {
+        "baseDias": 360,
+        "calculo": "Base 360 dias; juros diários, truncados à segunda casa decimal.",
+        "periodicidade": "vencimento",
+        "datasPagamento": null,
+        "regraData": "No final do prazo.",
+        "capitaliza": false,
+        "destino": "Conta à ordem associada"
+      },
+      "mobilizacao": {
+        "tipo": "livre",
+        "perdaJuros": "nenhuma",
+        "preAvisoDias": 0,
+        "descricao": "Mobilização antecipada total ou parcial sem penalização nos juros."
+      },
+      "custos": {
+        "abertura": null,
+        "manutencaoMensal": null,
+        "encerramento": null,
+        "contaOrdemObrigatoria": true,
+        "custoContaOrdemMensal": null,
+        "notas": "Comissões não confirmadas."
+      },
+      "fiscal": "Não confirmado na extração.",
+      "garantia": {
+        "sistema": "Fundo de Garantia de Depósitos (Portugal)",
+        "limite": 100000,
+        "entidade": "Banco BPI, S.A.",
+        "pais": "Portugal",
+        "notas": null
+      },
+      "fontes": [
+        {
+          "tipo": "FIN",
+          "titulo": "BPI Poupança Objectivo FIN (página oficial)",
+          "url": "https://www.bancobpi.pt/particulares/poupar-investir/contas-poupanca/bpi-poupanca-objectivo-fin",
+          "vigorDesde": null
+        }
+      ],
+      "verificacao": {
+        "estado": "parcial",
+        "ultima": "2026-11-10",
+        "proxima": "2026-11-17",
+        "hashFonte": null,
+        "notas": "Taxa de reforços e de renovação dependem do preçário (não incluído)."
+      },
+      "historico": []
+    }
+  ]
+}
